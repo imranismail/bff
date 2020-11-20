@@ -1,0 +1,91 @@
+package cmd
+
+import (
+	"os"
+	"path"
+	"strings"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/google/martian/v3/log"
+	"github.com/imranismail/bff/proxy"
+	"github.com/spf13/cobra"
+
+	"github.com/adrg/xdg"
+	"github.com/spf13/viper"
+)
+
+var cfgFile string
+var cfgPath = path.Join(xdg.ConfigHome, "bff")
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Use:   "bff",
+	Short: "A brief description of your application",
+	Long: `A longer description that spans multiple lines and likely contains
+examples and usage of using your application. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
+	Run: proxy.Serve,
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		log.Errorf("Root: %v", err)
+		os.Exit(1)
+	}
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
+
+	// Here you will define your flags and configuration settings.
+	// Cobra supports persistent flags, which, if defined here,
+	// will be global for your application.
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $XDG_CONFIG_HOME/bff/config.yaml)")
+
+	// Cobra also supports local flags, which will only run
+	// when this action is called directly.
+	rootCmd.Flags().StringP("port", "p", "5000", "Port to run the server on")
+	viper.BindPFlag("port", rootCmd.Flags().Lookup("port"))
+
+	rootCmd.Flags().BoolP("insecure", "i", false, "Skip TLS verify")
+	viper.BindPFlag("insecure", rootCmd.Flags().Lookup("insecure"))
+
+	rootCmd.Flags().IntP("verbosity", "v", 0, "Verbosity")
+	viper.BindPFlag("verbosity", rootCmd.Flags().Lookup("verbosity"))
+
+	rootCmd.Flags().StringP("url", "u", "", "Proxy url")
+	viper.BindPFlag("url", rootCmd.Flags().Lookup("url"))
+
+	rootCmd.Flags().StringP("modifiers", "m", "", "Modifiers")
+	viper.BindPFlag("modifiers", rootCmd.Flags().Lookup("modifiers"))
+}
+
+// initConfig reads in config file and ENV variables if set.
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		viper.SetConfigName("config")
+		viper.AddConfigPath(cfgPath)
+		viper.AddConfigPath(".")
+	}
+
+	// read in environment variables that match
+	viper.SetEnvPrefix("bff")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+
+	// If a config file is found, read it in
+	if err := viper.ReadInConfig(); err == nil {
+		log.Infof("Using config file: %v", viper.ConfigFileUsed())
+	}
+
+	// watch config file for changes
+	viper.WatchConfig()
+	viper.OnConfigChange(func(evt fsnotify.Event) { log.Infof("Config file changed: %v", evt.Name) })
+}

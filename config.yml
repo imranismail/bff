@@ -1,0 +1,26 @@
+modifiers: |-
+  # skip upstream roundtrip
+  - skip.RoundTrip:
+      scope: [request]
+  # fetch resources concurrently
+  - body.MultiFetcher:
+      resources:
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1
+            behavior: replace # replaces upstream http response
+            modifier:
+              status.Verifier:
+                statusCode: 200
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1/todos
+            behavior: merge # merge with the first call
+            group: todos # group this response into "todos" key
+            modifier:
+              status.Verifier:
+                statusCode: 200
+  - body.JSONPatch:
+      scope: [response]
+      patch:
+        - {op: move, from: /todos, path: /Todos}
