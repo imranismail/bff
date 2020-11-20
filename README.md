@@ -18,7 +18,7 @@ mkdir -p /tmp/quickstart-bff
 cd /tmp/quickstart-bff
 
 # download the bff executable into it
-curl -sfL https://github.com/imranismail/bff/releases/download/v0.1.1/bff_0.1.1_Linux_x86_64.tar.gz | tar xvz
+curl -sfL https://github.com/imranismail/bff/releases/download/v0.1.2/bff_0.1.2_Linux_x86_64.tar.gz | tar xvz
 
 # create the config file
 cat > config.yml <<YAML
