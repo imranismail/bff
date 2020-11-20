@@ -2,7 +2,7 @@ You may think that BFF stands for "Best Friends Forever", although that's very a
 
 BFF was built out of the requirement to have an API-aware proxy that is cabaple of routing, filtering, verifying and modifing HTTP request and response.
 
-It is built on top of [Google's Martian](https://github.com/google/martian) proxy development kit and written in Golang.
+It is built on top of [Google's Martian](https://github.com/google/martian) proxy development tool-kit, therefore `bff` supports the same [built-in modifiers](https://github.com/google/martian/wiki/Modifier-Reference).
 
 It can be composed to fit most use-cases and additional modifiers can be introduced and composed together to provide a customized functionality.
 
