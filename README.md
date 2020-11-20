@@ -13,9 +13,14 @@ In other words, BFF stands for ["Backend For Frontend"](https://samnewman.io/pat
 Download the latest release for your platform and architecture from [here](/-/releases)
 
 ```sh
+# make the temp directory
 mkdir -p /tmp/quickstart-bff
-tar -xvzf bff_<version>_<platform>_<arch>.tar.gz /tmp/quickstart-bff
 cd /tmp/quickstart-bff
+
+# download the bff executable into it
+curl -sfL https://github.com/imranismail/bff/releases/download/v0.1.0/bff_0.1.0_Linux_x86_64.tar.gz | tar xvz
+
+# create the config file
 cat > config.yml <<YAML
 modifiers: |-
   # skip upstream roundtrip
@@ -44,6 +49,10 @@ modifiers: |-
       patch:
         - {op: move, from: /todos, path: /Todos}
 YAML
+
+# start the proxy
 ./bff -v=3 -u http://jsonplaceholder.typicode.com
+
+# test it
 curl -v http://localhost:5000
 ```
