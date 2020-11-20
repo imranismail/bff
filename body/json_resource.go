@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	jsonpatch "github.com/evanphx/json-patch"
+	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/google/martian/v3"
 	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/parse"
