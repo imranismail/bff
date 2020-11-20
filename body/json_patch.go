@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	jsonpatch "github.com/evanphx/json-patch"
+	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/parse"
 )
