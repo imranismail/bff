@@ -8,6 +8,18 @@ It can be composed to fit most use-cases and additional modifiers can be introdu
 
 In other words, BFF stands for ["Backend For Frontend"](https://samnewman.io/patterns/architectural/bff/).
 
+## Flags
+
+```
+  -c, --config string      config file (default is $XDG_CONFIG_HOME/bff/config.yaml)
+  -h, --help               help for bff
+  -i, --insecure           Skip TLS verify
+  -m, --modifiers string   Modifiers
+  -p, --port string        Port to run the server on (default "5000")
+  -u, --url string         Proxy url
+  -v, --verbosity int      Verbosity
+```
+
 ## Quick Start
 
 Download the latest release for your platform and architecture from [here](/-/releases)
