@@ -42,6 +42,12 @@ bff --help
 
 The proxy is configured with a YAML configuration file. The file path can be set using the `--config` flag, it defaults to `$XDG_CONFIG_HOME/bff/config.yaml`
 
+```sh
+bff --config ./config.yaml
+```
+
+_./config.yaml_
+
 ```yaml
 insecure: false
 port: 5000
