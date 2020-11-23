@@ -10,7 +10,86 @@ It can be composed to fit most use-cases and additional modifiers can be introdu
 
 In other words, BFF stands for ["Backend For Frontend"](https://samnewman.io/patterns/architectural/bff/).
 
-## Quick Start (Docker)
+## Install
+
+### Executable
+
+```sh
+# make a temp directory
+cd $(mktemp -d)
+
+# download the bff executable into it
+curl -sfL https://github.com/imranismail/bff/releases/download/v0.2.0/bff_0.2.0_Linux_x86_64.tar.gz | tar xvz
+
+# move it into $PATH dir
+mv bff /usr/local/bin
+
+# test it
+bff --help
+```
+
+### Container
+
+- [Github Container Registry](https://github.com/users/imranismail/packages/container/package/bff)
+
+## Supported Flags
+
+```
+  -c, --config string      config file (default is $XDG_CONFIG_HOME/bff/config.yaml)
+  -h, --help               help for bff
+  -i, --insecure           Skip TLS verify
+  -m, --modifiers string   Modifiers
+  -p, --port string        Port to run the server on (default "5000")
+  -u, --url string         Proxy url
+  -v, --verbosity int      Verbosity
+```
+
+## Usage
+
+The proxy is configured with a YAML configuration file. The file path can be set using the `--config` flag, it defaults to `$XDG_CONFIG_HOME/bff/config.yaml`
+
+### Executable
+
+```sh
+bff --config ./config.yaml
+```
+
+_./config.yaml_
+
+```yaml
+insecure: false
+port: 5000
+url: https://jsonplaceholder.typicode.com
+verbosity: 3
+modifiers: |-
+  # skip upstream roundtrip
+  - skip.RoundTrip:
+      scope: [request]
+  # fetch resources concurrently
+  - body.MultiFetcher:
+      resources:
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1
+            behavior: replace # replaces upstream http response
+            modifier:
+              status.Verifier:
+                statusCode: 200 # verify that the resource returns 200 status code
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1/todos
+            behavior: merge # merge with the previous resource
+            group: todos # group this response into "todos" key
+            modifier:
+              status.Verifier:
+                statusCode: 200 # verify that the resource returns 200 status code
+  - body.JSONPatch:
+      scope: [response]
+      patch:
+        - {op: move, from: /todos, path: /Todos}
+```
+
+### Container
 
 ```sh
 # make a temp directory
@@ -52,77 +131,6 @@ EOF
 
 # run it
 docker run --rm -it -v $(pwd)/config.yml:/srv/config.yml ghcr.io/imranismail/bff:latest
-```
-
-## Install
-
-```sh
-# make a temp directory
-cd $(mktemp -d)
-
-# download the bff executable into it
-curl -sfL https://github.com/imranismail/bff/releases/download/v0.2.0/bff_0.2.0_Linux_x86_64.tar.gz | tar xvz
-
-# move it into $PATH dir
-mv bff /usr/local/bin
-
-# test it
-bff --help
-```
-
-## Supported Flags
-
-```
-  -c, --config string      config file (default is $XDG_CONFIG_HOME/bff/config.yaml)
-  -h, --help               help for bff
-  -i, --insecure           Skip TLS verify
-  -m, --modifiers string   Modifiers
-  -p, --port string        Port to run the server on (default "5000")
-  -u, --url string         Proxy url
-  -v, --verbosity int      Verbosity
-```
-
-## Usage
-
-The proxy is configured with a YAML configuration file. The file path can be set using the `--config` flag, it defaults to `$XDG_CONFIG_HOME/bff/config.yaml`
-
-```sh
-bff --config ./config.yaml
-```
-
-_./config.yaml_
-
-```yaml
-insecure: false
-port: 5000
-url: https://jsonplaceholder.typicode.com
-verbosity: 3
-modifiers: |-
-  # skip upstream roundtrip
-  - skip.RoundTrip:
-      scope: [request]
-  # fetch resources concurrently
-  - body.MultiFetcher:
-      resources:
-        - body.JSONResource:
-            method: GET
-            url: https://jsonplaceholder.typicode.com/users/1
-            behavior: replace # replaces upstream http response
-            modifier:
-              status.Verifier:
-                statusCode: 200 # verify that the resource returns 200 status code
-        - body.JSONResource:
-            method: GET
-            url: https://jsonplaceholder.typicode.com/users/1/todos
-            behavior: merge # merge with the previous resource
-            group: todos # group this response into "todos" key
-            modifier:
-              status.Verifier:
-                statusCode: 200 # verify that the resource returns 200 status code
-  - body.JSONPatch:
-      scope: [response]
-      patch:
-        - {op: move, from: /todos, path: /Todos}
 ```
 
 ## Config Reference
