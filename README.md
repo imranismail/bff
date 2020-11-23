@@ -1,4 +1,4 @@
-# Intro
+## Intro
 
 You may think that BFF stands for "Best Friends Forever", although that's very apt but that's not what this tool is built for.
 
@@ -10,23 +10,23 @@ It can be composed to fit most use-cases and additional modifiers can be introdu
 
 In other words, BFF stands for ["Backend For Frontend"](https://samnewman.io/patterns/architectural/bff/).
 
-# Quick Install
+## Quick Install
 
 ```sh
-# make a temp directory
+## make a temp directory
 cd $(mktemp -d)
 
-# download the bff executable into it
+## download the bff executable into it
 curl -sfL https://github.com/imranismail/bff/releases/download/v0.2.0/bff_0.2.0_Linux_x86_64.tar.gz | tar xvz
 
-# move it into $PATH dir
+## move it into $PATH dir
 mv bff /usr/local/bin
 
-# test it
+## test it
 bff --help
 ```
 
-# Supported Flags
+## Supported Flags
 
 ```
   -c, --config string      config file (default is $XDG_CONFIG_HOME/bff/config.yaml)
@@ -38,9 +38,9 @@ bff --help
   -v, --verbosity int      Verbosity
 ```
 
-# Usage
+## Usage
 
-This file is passed using the config flag `--config` or `-c` (defaults to $XDG_CONFIG_HOME/bff/config.yaml)
+The proxy is configured with a file with a path set using `--config` or `-c` (defaults to $XDG_CONFIG_HOME/bff/config.yaml) with the following content:
 
 ```yaml
 modifiers: |-
@@ -71,15 +71,15 @@ modifiers: |-
         - {op: move, from: /todos, path: /Todos}
 ```
 
-# Config Reference
+## Config Reference
 
 This reference is adapted from [Martian's wiki](https://github.com/google/martian/wiki/Modifier-Reference)
 
-## Modifiers
+### Modifiers
 
 Modifiers are able to mutate a request, a response or both.
 
-### JSONResource
+#### JSONResource
 
 The `body.JSONResource` fetches a remote JSON resource and merges/replaces the upstream response body with the response of the remote request depending on the `behavior` option. Defaults to the `merge` behavior.
 
@@ -96,7 +96,7 @@ body.JSONResource:
       statusCode: 200
 ```
 
-### JSONPatch
+#### JSONPatch
 
 The `body.JSONPatch` patches the JSON request or response body using [RFC6902: JSON Merge Patch](https://tools.ietf.org/html/rfc6902)
 
@@ -107,7 +107,7 @@ body.JSONPatch:
     - { op: move, from: /todos, path: /Todos }
 ```
 
-### Skip
+#### Skip
 
 The `skip.RoundTrip` skips the HTTP roundtrip to the upstream URL that was specified via the `--url` flag
 
@@ -116,7 +116,7 @@ skip.RoundTrip:
   scope: [request]
 ```
 
-### Cookie
+#### Cookie
 
 The `cookie.Modifier` injects a cookie into a request or a response.
 
@@ -135,7 +135,7 @@ cookie.Modifier:
   maxAge: 86400
 ```
 
-### Header
+#### Header
 
 The `header.Modifier` injects or modifies headers in a request or a response.
 
@@ -149,7 +149,7 @@ header.Modifier:
   value: "true"
 ```
 
-### Header Blacklist
+#### Header Blacklist
 
 The `header.Blacklist` deletes headers from a request or a response.
 
@@ -162,7 +162,7 @@ header.Blacklist:
   names: [X-Martian, Y-Martian]
 ```
 
-### Query String
+#### Query String
 
 The `querystring.Modifier` adds or modifies query string parameters on a
 request. Any existing parameter values are replaced.
@@ -177,7 +177,7 @@ querystring.Modifier:
   value: bar
 ```
 
-### Status
+#### Status
 
 The `status.Modifier` modifies the HTTP status code on a response.
 
@@ -189,7 +189,7 @@ status.Modifier:
   statusCode: 200
 ```
 
-### URL
+#### URL
 
 The `url.Modifier` modifies the URL on a request.
 
@@ -204,7 +204,7 @@ url.Modifier:
   query: testing=true
 ```
 
-### Message Body
+#### Message Body
 
 The `body.Modifier` modifies the body of a request or response. Additionally, it will modify the following headers to ensure proper transport: `Content-Type`, `Content-Length`, `Content-Encoding`. The body is expected to be uncompressed and Base64 encoded.
 
@@ -215,11 +215,11 @@ body.Modifier:
   body: TWFydGlhbiBpcyBhd2Vzb21lIQ==
 ```
 
-## Groups
+### Groups
 
 Groups hold lists of modifiers (or filters, or groups) that are executed in a particular order.
 
-### MultiFetcher
+#### MultiFetcher
 
 A `body.MultiFetcher` holds a list of data fetchers that are fetched concurrently, the response are modified in first-in, first-out order.
 
@@ -245,7 +245,7 @@ body.MultiFetcher:
             statusCode: 500
 ```
 
-### FIFO
+#### FIFO
 
 A `fifo.Group` holds a list of modifiers that are executed in first-in,
 first-out order.
@@ -266,7 +266,7 @@ fifo.Group:
         names: [X-Martian]
 ```
 
-### Priority
+#### Priority
 
 A `priority.Group` holds a list of modifiers that are each associated with an
 integer. Each integer represents the "priority" of the associated modifier, and
@@ -296,11 +296,11 @@ priority.Group:
         names: [X-Martian]
 ```
 
-## Filters
+### Filters
 
 Filters execute contained modifiers if the defined conditional is met.
 
-### Header
+#### Header
 
 The `header.Filter` executes its contained modifier if the a request or
 response contains a header that matches the defined `name` and `value`. In the
@@ -323,7 +323,7 @@ header.Filter:
       value: bar
 ```
 
-### Query String
+#### Query String
 
 The `querystring.Filter` executes its contained modifier if the request or
 response contains a query string parameter matches the defined `name` and
@@ -347,7 +347,7 @@ querystring.Filter:
       value: "true"
 ```
 
-### URL
+#### URL
 
 The `url.Filter` executes its contained modifier if the request URL matches all
 of the provided parts. Missing parameters are ignored.
@@ -366,12 +366,12 @@ url.Filter:
       value: "true"
 ```
 
-## Verifiers
+### Verifiers
 
 Verifier check network traffic against defined expectations. Failed
 verifications are returned as a list of errors.
 
-### Header
+#### Header
 
 The `header.Verifier` records an error for every request or response that does not contain a header that matches the `name` and `value`. In the case that a `value` is not provided, the an error is recorded for every failed match of the `name`.
 
@@ -384,7 +384,7 @@ header.Verifier:
   value: "true"
 ```
 
-### Method
+#### Method
 
 The `method.Verifier` records an error for every request that does not match the expected HTTP method.
 
@@ -396,7 +396,7 @@ method.Verifier:
   method: POST
 ```
 
-### Pingback
+#### Pingback
 
 The `pingback.Verifier` records an error for every request that fails to generate a pingback request with the provided url parameters. In the case that certain parameters are not provided, those portions of the URL are not used for matching.
 
@@ -411,7 +411,7 @@ pingback.Verifier:
   query: test=true
 ```
 
-### Query String
+#### Query String
 
 The `querystring.Verifier` records an error for every request or response that does not contain a query string parameter that matches the `name` and `value`. In the case that a `value` is not provided, then an error is recorded of every failed match of `name`, ignoring any `value`.
 
@@ -424,7 +424,7 @@ querystring.Verifier:
   value: "true"
 ```
 
-### Status
+#### Status
 
 The `status.Verifier` records an error for every response that is returned with a HTTP status that does not match the `statusCode` provided.
 
@@ -436,7 +436,7 @@ status.Verifier:
   statusCode: 200
 ```
 
-### URL
+#### URL
 
 The `url.Verifier` records an error for every request URL that does not match all provided parts of a URL.
 
