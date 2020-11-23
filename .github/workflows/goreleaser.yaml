@@ -2,6 +2,8 @@ name: goreleaser
 
 on:
   push:
+    branches:
+      - "master"
     tags:
       - v*.*.*
 
@@ -17,7 +19,21 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.15.5
-      - name: Run GoReleaser
+      - name: Registry Login
+        env:
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+        run: |
+          echo $GHCR_PAT | docker login ghcr.io --username $GITHUB_ACTOR --password-stdin
+      - name: Snapshot
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --rm-dist --snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: goreleaser/goreleaser-action@v2
         with:
           version: latest
