@@ -10,19 +10,63 @@ It can be composed to fit most use-cases and additional modifiers can be introdu
 
 In other words, BFF stands for ["Backend For Frontend"](https://samnewman.io/patterns/architectural/bff/).
 
-## Quick Install
+## Quick Start (Docker)
 
 ```sh
-## make a temp directory
+# make a temp directory
 cd $(mktemp -d)
 
-## download the bff executable into it
+# create config file
+cat > config.yml <<EOF
+insecure: false
+port: 5000
+url: https://jsonplaceholder.typicode.com
+verbosity: 3
+modifiers: |-
+  # skip upstream roundtrip
+  - skip.RoundTrip:
+      scope: [request]
+  # fetch resources concurrently
+  - body.MultiFetcher:
+      resources:
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1
+            behavior: replace # replaces upstream http response
+            modifier:
+              status.Verifier:
+                statusCode: 200 # verify that the resource returns 200 status code
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1/todos
+            behavior: merge # merge with the previous resource
+            group: todos # group this response into "todos" key
+            modifier:
+              status.Verifier:
+                statusCode: 200 # verify that the resource returns 200 status code
+  - body.JSONPatch:
+      scope: [response]
+      patch:
+        - {op: move, from: /todos, path: /Todos}
+EOF
+
+# run it
+docker run --rm -it -v $(pwd)/config.yml:/srv/config.yml ghcr.io/imranismail/bff:latest
+```
+
+## Install
+
+```sh
+# make a temp directory
+cd $(mktemp -d)
+
+# download the bff executable into it
 curl -sfL https://github.com/imranismail/bff/releases/download/v0.2.0/bff_0.2.0_Linux_x86_64.tar.gz | tar xvz
 
-## move it into $PATH dir
+# move it into $PATH dir
 mv bff /usr/local/bin
 
-## test it
+# test it
 bff --help
 ```
 
