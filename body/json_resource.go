@@ -12,6 +12,7 @@ import (
 	"github.com/google/martian/v3"
 	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/parse"
+	"github.com/google/martian/v3/verify"
 )
 
 var httpClient = &http.Client{
@@ -19,10 +20,10 @@ var httpClient = &http.Client{
 }
 
 func init() {
-	parse.Register("body.JSONResource", jsonResourceModifierFromJSON)
+	parse.Register("body.JSONResource", jsonResourceFromJSON)
 }
 
-type jsonResourceModifierJSON struct {
+type jsonResourceJSON struct {
 	Scope       []parse.ModifierType `json:"scope"`
 	ResourceURL string               `json:"url"`
 	Method      string               `json:"method"`
@@ -31,15 +32,14 @@ type jsonResourceModifierJSON struct {
 	Modifier    json.RawMessage      `json:"modifier"`
 }
 
-// JSONResource WIP
-type JSONResource struct {
+type jsonResource struct {
 	body     []byte
 	behavior string
 	group    string
 }
 
-// JSONResourceModifier let you change the name of the fields of the generated responses
-type JSONResourceModifier struct {
+// JSONResource let you change the name of the fields of the generated responses
+type JSONResource struct {
 	resourceURL string
 	method      string
 	behavior    string
@@ -52,17 +52,182 @@ func validBehavior(behavior string) bool {
 	return behavior == "replace" || behavior == "merge"
 }
 
-// NewJSONResource WIP
-func NewJSONResource(body []byte, behavior string, group string) *JSONResource {
-	return &JSONResource{
+// NewJSONResource constructs and returns a body.JSONDataSourceModifier.
+func NewJSONResource(method string, resourceURL string, behavior string, group string) (*JSONResource, error) {
+	if behavior == "" {
+		behavior = "merge"
+	}
+
+	if method == "" {
+		method = "GET"
+	}
+
+	if !validBehavior(behavior) {
+		return nil, fmt.Errorf("body.JSONResource.New: invalid behavior %q", behavior)
+	}
+
+	log.Debugf("body.JSONResource.New: method(%s) url(%s) behavior(%s)", method, resourceURL, behavior)
+
+	m := &JSONResource{
+		resourceURL: resourceURL,
+		method:      method,
+		behavior:    behavior,
+		group:       group,
+	}
+
+	return m, nil
+}
+
+// SetRequestModifier Sets a RequestModifier
+func (m *JSONResource) SetRequestModifier(reqmod martian.RequestModifier) {
+	m.reqmod = reqmod
+}
+
+// SetResponseModifier Sets a ResponseModifier
+func (m *JSONResource) SetResponseModifier(resmod martian.ResponseModifier) {
+	m.resmod = resmod
+}
+
+// FetchResource fetches the resource
+func (m *JSONResource) FetchResource() (martian.ResponseModifier, error) {
+	log.Debugf("body.JSONResource.FetchResource: method(%s) url(%s)", m.method, m.resourceURL)
+
+	req, err := http.NewRequest(
+		m.method,
+		m.resourceURL,
+		bytes.NewBuffer([]byte{}),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, removeReq, err := martian.TestContext(req, nil, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer removeReq()
+
+	if m.reqmod != nil {
+		err = m.reqmod.ModifyRequest(req)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req.Header.Set("Accept", "application/json")
+
+	res, err := httpClient.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	_, removeResReq, err := martian.TestContext(res.Request, nil, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer removeResReq()
+
+	if m.resmod != nil {
+		err = m.resmod.ModifyResponse(res)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &jsonResource{
 		body:     body,
-		behavior: behavior,
-		group:    group,
+		behavior: m.behavior,
+		group:    m.group,
+	}, nil
+}
+
+// ModifyResponse patches the response body.
+func (m *JSONResource) ModifyResponse(res *http.Response) error {
+	log.Debugf("body.JSONResource.ModifyResponse: request: %s", res.Request.URL)
+
+	resource, err := m.FetchResource()
+
+	if err != nil {
+		return err
+	}
+
+	return resource.ModifyResponse(res)
+}
+
+// ResetResponseVerifications clears all failed response verifications.
+func (m *JSONResource) ResetResponseVerifications() {
+	if resv, ok := m.resmod.(verify.ResponseVerifier); ok {
+		resv.ResetResponseVerifications()
 	}
 }
 
-// ModifyResponse WIP
-func (resource *JSONResource) ModifyResponse(res *http.Response) error {
+// VerifyResponses returns a MultiError containing all the
+// verification errors returned by response verifiers.
+func (m *JSONResource) VerifyResponses() error {
+	log.Debugf("body.JSONResource.VerifyResponse")
+
+	if resv, ok := m.resmod.(verify.ResponseVerifier); ok {
+		if err := resv.VerifyResponses(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func jsonResourceFromJSON(b []byte) (*parse.Result, error) {
+	msg := &jsonResourceJSON{}
+
+	if err := json.Unmarshal(b, msg); err != nil {
+		return nil, err
+	}
+
+	m, err := NewJSONResource(msg.Method, msg.ResourceURL, msg.Behavior, msg.Group)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if msg.Modifier != nil {
+		r, err := parse.FromJSON(msg.Modifier)
+
+		if err != nil {
+			return nil, err
+		}
+
+		reqmod := r.RequestModifier()
+
+		if reqmod != nil {
+			m.SetRequestModifier(reqmod)
+		}
+
+		resmod := r.ResponseModifier()
+
+		if resmod != nil {
+			m.SetResponseModifier(resmod)
+		}
+	}
+
+	return parse.NewResult(m, msg.Scope)
+}
+
+func (resource *jsonResource) ModifyResponse(res *http.Response) error {
 	if resource.group != "" {
 		group := make(map[string]json.RawMessage)
 		msg := make(json.RawMessage, 0)
@@ -114,143 +279,4 @@ func (resource *JSONResource) ModifyResponse(res *http.Response) error {
 	}
 
 	return nil
-}
-
-// NewJSONResourceModifier constructs and returns a body.JSONDataSourceModifier.
-func NewJSONResourceModifier(method string, resourceURL string, behavior string, group string) (*JSONResourceModifier, error) {
-	if behavior == "" {
-		behavior = "merge"
-	}
-
-	if method == "" {
-		method = "GET"
-	}
-
-	if !validBehavior(behavior) {
-		return nil, fmt.Errorf("body.JSONResource.New: invalid behavior %q", behavior)
-	}
-
-	log.Debugf("body.JSONResource.New: method(%s) url(%s) behavior(%s)", method, resourceURL, behavior)
-
-	m := &JSONResourceModifier{
-		resourceURL: resourceURL,
-		method:      method,
-		behavior:    behavior,
-		group:       group,
-	}
-
-	return m, nil
-}
-
-// SetRequestModifier Sets a RequestModifier
-func (m *JSONResourceModifier) SetRequestModifier(reqmod martian.RequestModifier) {
-	m.reqmod = reqmod
-}
-
-// SetResponseModifier Sets a ResponseModifier
-func (m *JSONResourceModifier) SetResponseModifier(resmod martian.ResponseModifier) {
-	m.resmod = resmod
-}
-
-// FetchResource fetches the resource
-func (m *JSONResourceModifier) FetchResource() (martian.ResponseModifier, error) {
-	log.Debugf("body.JSONResource.FetchResource: method(%s) url(%s)", m.method, m.resourceURL)
-
-	req, err := http.NewRequest(
-		m.method,
-		m.resourceURL,
-		bytes.NewBuffer([]byte{}),
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if m.reqmod != nil {
-		err = m.reqmod.ModifyRequest(req)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	req.Header.Set("Accept", "application/json")
-
-	res, err := httpClient.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	if m.resmod != nil {
-		err = m.resmod.ModifyResponse(res)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	body, err := ioutil.ReadAll(res.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	resource := NewJSONResource(
-		body,
-		m.behavior,
-		m.group,
-	)
-
-	return resource, nil
-}
-
-// ModifyResponse patches the response body.
-func (m *JSONResourceModifier) ModifyResponse(res *http.Response) error {
-	log.Debugf("body.JSONResource.ModifyResponse: request: %s", res.Request.URL)
-
-	resource, err := m.FetchResource()
-
-	if err != nil {
-		return err
-	}
-
-	return resource.ModifyResponse(res)
-}
-
-func jsonResourceModifierFromJSON(b []byte) (*parse.Result, error) {
-	msg := &jsonResourceModifierJSON{}
-	if err := json.Unmarshal(b, msg); err != nil {
-		return nil, err
-	}
-
-	mod, err := NewJSONResourceModifier(msg.Method, msg.ResourceURL, msg.Behavior, msg.Group)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if msg.Modifier != nil {
-		r, err := parse.FromJSON(msg.Modifier)
-
-		if err != nil {
-			return nil, err
-		}
-
-		reqmod := r.RequestModifier()
-
-		if reqmod != nil {
-			mod.SetRequestModifier(reqmod)
-		}
-
-		resmod := r.ResponseModifier()
-
-		if resmod != nil {
-			mod.SetResponseModifier(resmod)
-		}
-	}
-
-	return parse.NewResult(mod, msg.Scope)
 }

@@ -54,13 +54,15 @@ func (eb *ErrorBoundary) SetResponseVerifier(resv verify.ResponseVerifier) {
 
 // ModifyRequest WIP
 func (eb *ErrorBoundary) ModifyRequest(req *http.Request) error {
+	defer eb.reqv.ResetRequestVerifications()
+
 	merr := martian.NewMultiError()
 
 	if err := eb.reqmod.ModifyRequest(req); err != nil {
 		merr.Add(err)
 	}
 
-	if err := eb.VerifyRequests(); err != nil {
+	if err := eb.reqv.VerifyRequests(); err != nil {
 		merr.Add(err)
 	}
 
@@ -71,22 +73,10 @@ func (eb *ErrorBoundary) ModifyRequest(req *http.Request) error {
 	return nil
 }
 
-func merrToJSON(merr *martian.MultiError) ([]byte, error) {
-	errs := merr.Errors()
-
-	vres := &boundaryResponse{
-		Errors: make([]boundaryError, 0),
-	}
-
-	for _, err := range errs {
-		vres.Errors = append(vres.Errors, boundaryError{Message: err.Error()})
-	}
-
-	return json.Marshal(vres)
-}
-
 // ModifyResponse WIP
 func (eb *ErrorBoundary) ModifyResponse(res *http.Response) error {
+	defer eb.resv.ResetResponseVerifications()
+
 	merr := martian.NewMultiError()
 
 	if eb.resmod != nil {
@@ -119,12 +109,16 @@ func (eb *ErrorBoundary) ModifyResponse(res *http.Response) error {
 	return nil
 }
 
-// VerifyRequests returns the set request error.
-func (eb *ErrorBoundary) VerifyRequests() error {
-	return eb.reqv.VerifyRequests()
-}
+func merrToJSON(merr *martian.MultiError) ([]byte, error) {
+	errs := merr.Errors()
 
-// VerifyResponses returns the set response error.
-func (eb *ErrorBoundary) VerifyResponses() error {
-	return eb.resv.VerifyResponses()
+	vres := &boundaryResponse{
+		Errors: make([]boundaryError, 0),
+	}
+
+	for _, err := range errs {
+		vres.Errors = append(vres.Errors, boundaryError{Message: err.Error()})
+	}
+
+	return json.Marshal(vres)
 }

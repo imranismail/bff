@@ -35,8 +35,8 @@ import (
 	_ "github.com/google/martian/v3/skip"
 	_ "github.com/google/martian/v3/stash"
 	_ "github.com/google/martian/v3/static"
+	_ "github.com/google/martian/v3/status"
 	_ "github.com/imranismail/bff/body"
-	_ "github.com/imranismail/bff/status"
 )
 
 // Serve start the webserver
