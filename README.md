@@ -2,7 +2,7 @@
 
 You may think that BFF stands for "Best Friends Forever", although that's very apt but that's not what this tool is built for.
 
-BFF was built out of the requirement to have an API-aware proxy that is cabaple of routing, filtering, verifying and modifing HTTP request and response.
+BFF was built out of the requirement to have an API-aware proxy that is capable of routing, filtering, verifying and modifing HTTP request and response.
 
 It is built on top of [Google's Martian](https://github.com/google/martian) proxy framework, therefore `bff` supports the same [built-in modifiers](https://github.com/google/martian/wiki/Modifier-Reference).
 
