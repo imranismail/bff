@@ -52,7 +52,7 @@ func init() {
 	rootCmd.Flags().BoolP("insecure", "i", false, "Skip TLS verify")
 	viper.BindPFlag("insecure", rootCmd.Flags().Lookup("insecure"))
 
-	rootCmd.Flags().IntP("verbosity", "v", 0, "Verbosity")
+	rootCmd.Flags().IntP("verbosity", "v", 2, "Verbosity")
 	viper.BindPFlag("verbosity", rootCmd.Flags().Lookup("verbosity"))
 
 	rootCmd.Flags().StringP("url", "u", "", "Proxy url")
