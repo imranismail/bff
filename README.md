@@ -19,7 +19,7 @@ In other words, BFF stands for ["Backend For Frontend"](https://samnewman.io/pat
 cd $(mktemp -d)
 
 # download the bff executable into it
-curl -sfL https://github.com/imranismail/bff/releases/download/v0.2.0/bff_0.2.0_Linux_x86_64.tar.gz | tar xvz
+curl -sfL https://github.com/imranismail/bff/releases/download/v0.2.1/bff_0.2.1_Linux_x86_64.tar.gz | tar xvz
 
 # move it into $PATH dir
 mv bff /usr/local/bin
