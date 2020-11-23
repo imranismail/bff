@@ -13,7 +13,6 @@ builds:
       - linux
       - windows
       - darwin
-
 dockers:
   - binaries:
       - bff
@@ -22,7 +21,6 @@ dockers:
       - ghcr.io/imranismail/bff:v{{ .Major }}"
       - ghcr.io/imranismail/bff:v{{ .Major }}.{{ .Minor }}"
       - ghcr.io/imranismail/bff:latest
-
 archives:
   - replacements:
       darwin: Darwin
