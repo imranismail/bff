@@ -40,9 +40,17 @@ bff --help
 
 ## Usage
 
-The proxy is configured with a file with a path set using `--config` or `-c` (defaults to $XDG_CONFIG_HOME/bff/config.yaml) with the following content:
+The proxy is configured with a YAML configuration file.
+
+The file path can be set using the `--config` flag, it defaults to `$XDG_CONFIG_HOME/bff/config.yaml`.
+
+Here's an example:
 
 ```yaml
+insecure: false
+port: 5000
+url: https://jsonplaceholder.typicode.com
+verbosity: 3
 modifiers: |-
   # skip upstream roundtrip
   - skip.RoundTrip:
