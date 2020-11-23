@@ -5,7 +5,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/google/martian/v3/log"
 	"github.com/imranismail/bff/proxy"
 	"github.com/spf13/cobra"
@@ -77,12 +76,14 @@ func initConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
+	err := viper.ReadInConfig()
+	log.SetLevel(viper.GetInt("verbosity"))
+
 	// If a config file is found, read it in
-	if err := viper.ReadInConfig(); err == nil {
+	if err == nil {
 		log.Infof("Using config file: %v", viper.ConfigFileUsed())
 	}
 
 	// watch config file for changes
 	viper.WatchConfig()
-	viper.OnConfigChange(func(evt fsnotify.Event) { log.Infof("Config file changed: %v", evt.Name) })
 }

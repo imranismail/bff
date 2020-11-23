@@ -41,8 +41,6 @@ import (
 
 // Serve start the webserver
 func Serve(cmd *cobra.Command, args []string) {
-	log.SetLevel(viper.GetInt("verbosity"))
-
 	proxy := martian.NewProxy()
 	defer proxy.Close()
 
@@ -70,6 +68,7 @@ func Serve(cmd *cobra.Command, args []string) {
 	configureProxy(proxy)
 
 	viper.OnConfigChange(func(evt fsnotify.Event) {
+		log.Infof("proxy.Serve: Reconfiguring: %v", evt.Name)
 		configureProxy(proxy)
 	})
 
