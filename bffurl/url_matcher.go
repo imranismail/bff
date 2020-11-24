@@ -24,48 +24,54 @@ import (
 // Matcher is a conditional evaluator of request urls to be used in
 // filters that take conditionals.
 type Matcher struct {
-	url *url.URL
+	url     *url.URL
+	pattern *Pattern
 }
 
 // NewMatcher builds a new url matcher.
 func NewMatcher(url *url.URL) *Matcher {
 	return &Matcher{
-		url: url,
+		url:     url,
+		pattern: NewPattern(url.Path),
 	}
 }
 
 // MatchRequest retuns true if all non-empty URL segments in m.url match the
 // request URL.
 func (m *Matcher) MatchRequest(req *http.Request) bool {
-	matched := m.matches(req.URL)
+	matched := m.matches(req)
+
 	if matched {
 		log.Debugf("bffurl.Matcher.MatchRequest: matched: %s", req.URL)
 	}
+
 	return matched
 }
 
 // MatchResponse retuns true if all non-empty URL segments in m.url match the
 // request URL.
 func (m *Matcher) MatchResponse(res *http.Response) bool {
-	matched := m.matches(res.Request.URL)
+	matched := m.matches(res.Request)
+
 	if matched {
 		log.Debugf("bffurl.Matcher.MatchResponse: matched: %s", res.Request.URL)
 	}
+
 	return matched
 }
 
 // matches forces all non-empty URL segments to match or it returns false.
-func (m *Matcher) matches(u *url.URL) bool {
+func (m *Matcher) matches(r *http.Request) bool {
 	switch {
-	case m.url.Scheme != "" && m.url.Scheme != u.Scheme:
+	case m.url.Scheme != "" && m.url.Scheme != r.URL.Scheme:
 		return false
-	case m.url.Host != "" && !MatchHost(u.Host, m.url.Host):
+	case m.url.Host != "" && !MatchHost(r.URL.Host, m.url.Host):
 		return false
-	case m.url.Path != "" && m.url.Path != u.Path:
+	case m.url.Path != "" && !m.pattern.Match(r):
 		return false
-	case m.url.RawQuery != "" && m.url.RawQuery != u.RawQuery:
+	case m.url.RawQuery != "" && m.url.RawQuery != r.URL.RawQuery:
 		return false
-	case m.url.Fragment != "" && m.url.Fragment != u.Fragment:
+	case m.url.Fragment != "" && m.url.Fragment != r.URL.Fragment:
 		return false
 	}
 

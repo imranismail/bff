@@ -29,7 +29,8 @@ import (
 // url and adds a X-Forwarded-Url header that contains the original
 // value of the request URL.
 type Modifier struct {
-	url *url.URL
+	url     *url.URL
+	pattern *Pattern
 }
 
 type modifierJSON struct {
@@ -54,6 +55,7 @@ func (m *Modifier) ModifyRequest(req *http.Request) error {
 	}
 	if m.url.Path != "" {
 		req.URL.Path = m.url.Path
+		m.pattern.ReplacePath(req)
 	}
 	if m.url.RawQuery != "" {
 		req.URL.RawQuery = m.url.RawQuery
@@ -68,7 +70,8 @@ func (m *Modifier) ModifyRequest(req *http.Request) error {
 // NewModifier overrides the url of the request.
 func NewModifier(url *url.URL) martian.RequestModifier {
 	return &Modifier{
-		url: url,
+		url:     url,
+		pattern: NewPattern(url.Path),
 	}
 }
 
