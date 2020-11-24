@@ -55,7 +55,7 @@ func validBehavior(behavior string) bool {
 // NewJSONResource constructs and returns a body.JSONDataSourceModifier.
 func NewJSONResource(method string, resourceURL string, behavior string, group string) (*JSONResource, error) {
 	if behavior == "" {
-		behavior = "merge"
+		behavior = "replace"
 	}
 
 	if method == "" {
