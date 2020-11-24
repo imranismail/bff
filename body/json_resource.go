@@ -128,13 +128,11 @@ func (m *JSONResource) FetchResource() (martian.ResponseModifier, error) {
 
 	defer res.Body.Close()
 
-	_, removeResReq, err := martian.TestContext(res.Request, nil, nil)
+	res.Request = req
 
 	if err != nil {
 		return nil, err
 	}
-
-	defer removeResReq()
 
 	if m.resmod != nil {
 		err = m.resmod.ModifyResponse(res)
