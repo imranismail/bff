@@ -104,6 +104,8 @@ func (eb *ErrorBoundary) ModifyResponse(res *http.Response) error {
 
 		res.ContentLength = int64(len(resp))
 		res.Body = ioutil.NopCloser(bytes.NewReader(resp))
+		res.StatusCode = http.StatusInternalServerError
+		res.Status = http.StatusText(res.StatusCode)
 	}
 
 	return nil
