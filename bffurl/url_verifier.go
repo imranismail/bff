@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/google/martian/v3"
+	"github.com/google/martian/v3/martianurl"
 	"github.com/google/martian/v3/parse"
 	"github.com/google/martian/v3/verify"
 )
@@ -32,13 +33,14 @@ const (
 )
 
 func init() {
-	parse.Register("url.Verifier", verifierFromJSON)
+	parse.Register("bffurl.Verifier", verifierFromJSON)
 }
 
 // Verifier verifies the structure of URLs.
 type Verifier struct {
-	url *url.URL
-	err *martian.MultiError
+	url     *url.URL
+	err     *martian.MultiError
+	pattern *Pattern
 }
 
 type verifierJSON struct {
@@ -52,8 +54,9 @@ type verifierJSON struct {
 // NewVerifier returns a new URL verifier.
 func NewVerifier(url *url.URL) verify.RequestVerifier {
 	return &Verifier{
-		url: url,
-		err: martian.NewMultiError(),
+		url:     url,
+		err:     martian.NewMultiError(),
+		pattern: NewPattern(url.Path),
 	}
 }
 
@@ -74,11 +77,11 @@ func (v *Verifier) ModifyRequest(req *http.Request) error {
 		f := fmt.Sprintf(errPartFormat, "Scheme", u.Scheme, v.url.Scheme)
 		failures = append(failures, f)
 	}
-	if v.url.Host != "" && !MatchHost(u.Host, v.url.Host) {
+	if v.url.Host != "" && !martianurl.MatchHost(u.Host, v.url.Host) {
 		f := fmt.Sprintf(errPartFormat, "Host", u.Host, v.url.Host)
 		failures = append(failures, f)
 	}
-	if v.url.Path != "" && v.url.Path != u.Path {
+	if v.url.Path != "" && !v.pattern.Match(req) {
 		f := fmt.Sprintf(errPartFormat, "Path", u.Path, v.url.Path)
 		failures = append(failures, f)
 	}

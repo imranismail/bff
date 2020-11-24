@@ -19,6 +19,7 @@ import (
 	"net/url"
 
 	"github.com/google/martian/v3/log"
+	"github.com/google/martian/v3/martianurl"
 )
 
 // Matcher is a conditional evaluator of request urls to be used in
@@ -65,7 +66,7 @@ func (m *Matcher) matches(r *http.Request) bool {
 	switch {
 	case m.url.Scheme != "" && m.url.Scheme != r.URL.Scheme:
 		return false
-	case m.url.Host != "" && !MatchHost(r.URL.Host, m.url.Host):
+	case m.url.Host != "" && !martianurl.MatchHost(r.URL.Host, m.url.Host):
 		return false
 	case m.url.Path != "" && !m.pattern.Match(r):
 		return false

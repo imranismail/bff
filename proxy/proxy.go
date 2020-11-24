@@ -26,6 +26,7 @@ import (
 	_ "github.com/google/martian/v3/cookie"
 	_ "github.com/google/martian/v3/failure"
 	_ "github.com/google/martian/v3/header"
+	_ "github.com/google/martian/v3/martianurl"
 	_ "github.com/google/martian/v3/method"
 	_ "github.com/google/martian/v3/pingback"
 	_ "github.com/google/martian/v3/port"

@@ -42,7 +42,7 @@ type modifierJSON struct {
 }
 
 func init() {
-	parse.Register("url.Modifier", modifierFromJSON)
+	parse.Register("bffurl.Modifier", modifierFromJSON)
 }
 
 // ModifyRequest sets the fields of req.URL to m.Url if they are not the zero value.
