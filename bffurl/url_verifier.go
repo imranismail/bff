@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/google/martian/v3"
+	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/martianurl"
 	"github.com/google/martian/v3/parse"
 	"github.com/google/martian/v3/verify"
@@ -33,7 +34,7 @@ const (
 )
 
 func init() {
-	parse.Register("bffurl.Verifier", verifierFromJSON)
+	parse.Register("bff.URLVerifier", verifierFromJSON)
 }
 
 // Verifier verifies the structure of URLs.
@@ -52,11 +53,13 @@ type verifierJSON struct {
 }
 
 // NewVerifier returns a new URL verifier.
-func NewVerifier(url *url.URL) verify.RequestVerifier {
+func NewVerifier(u *url.URL) verify.RequestVerifier {
+	log.Debugf("bff.NewURLVerifier: %s", u)
+
 	return &Verifier{
-		url:     url,
+		url:     u,
 		err:     martian.NewMultiError(),
-		pattern: NewPattern(url.Path),
+		pattern: NewPattern(u.Path),
 	}
 }
 

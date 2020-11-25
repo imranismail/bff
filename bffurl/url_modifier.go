@@ -22,6 +22,7 @@ import (
 	"net/url"
 
 	"github.com/google/martian/v3"
+	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/parse"
 )
 
@@ -42,7 +43,7 @@ type modifierJSON struct {
 }
 
 func init() {
-	parse.Register("bffurl.Modifier", modifierFromJSON)
+	parse.Register("bff.URLModifier", modifierFromJSON)
 }
 
 // ModifyRequest sets the fields of req.URL to m.Url if they are not the zero value.
@@ -68,10 +69,12 @@ func (m *Modifier) ModifyRequest(req *http.Request) error {
 }
 
 // NewModifier overrides the url of the request.
-func NewModifier(url *url.URL) martian.RequestModifier {
+func NewModifier(u *url.URL) martian.RequestModifier {
+	log.Debugf("bff.NewURLModifier: %s", u)
+
 	return &Modifier{
-		url:     url,
-		pattern: NewPattern(url.Path),
+		url:     u,
+		pattern: NewPattern(u.Path),
 	}
 }
 

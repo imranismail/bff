@@ -24,10 +24,10 @@ import (
 	"github.com/google/martian/v3/parse"
 )
 
-var noop = martian.Noop("bffurl.Filter")
+var noop = martian.Noop("bff.URLFilter")
 
 func init() {
-	parse.Register("bffurl.Filter", filterFromJSON)
+	parse.Register("bff.URLFilter", filterFromJSON)
 }
 
 // Filter runs modifiers iff the request URL matches all of the segments in url.
@@ -48,7 +48,7 @@ type filterJSON struct {
 // NewFilter constructs a filter that applies the modifer when the
 // request URL matches all of the provided URL segments.
 func NewFilter(u *url.URL) *Filter {
-	log.Debugf("bffurl.NewFilter: %s", u)
+	log.Debugf("bff.NewURLFilter: %s", u)
 
 	m := NewMatcher(u)
 	f := filter.New()
