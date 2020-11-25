@@ -43,7 +43,7 @@ func (m *Matcher) MatchRequest(req *http.Request) bool {
 	matched := m.matches(req)
 
 	if matched {
-		log.Debugf("bffurl.Matcher.MatchRequest: matched: %s", req.URL)
+		log.Debugf("bffurl.Matcher.MatchRequest: matched: %s", m.url)
 	}
 
 	return matched
@@ -55,7 +55,7 @@ func (m *Matcher) MatchResponse(res *http.Response) bool {
 	matched := m.matches(res.Request)
 
 	if matched {
-		log.Debugf("bffurl.Matcher.MatchResponse: matched: %s", res.Request.URL)
+		log.Debugf("bffurl.Matcher.MatchResponse: matched: %s", m.url)
 	}
 
 	return matched
