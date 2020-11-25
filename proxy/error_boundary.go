@@ -77,6 +77,18 @@ func (eb *ErrorBoundary) ModifyRequest(req *http.Request) error {
 func (eb *ErrorBoundary) ModifyResponse(res *http.Response) error {
 	defer eb.resv.ResetResponseVerifications()
 
+	ctx := martian.NewContext(res.Request)
+
+	if err, ok := ctx.Get("via.LoopDetection"); err != nil && ok {
+		res.Body.Close()
+		res.ContentLength = 0
+		res.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+		res.StatusCode = http.StatusNotFound
+		res.Status = http.StatusText(res.StatusCode)
+
+		return nil
+	}
+
 	merr := martian.NewMultiError()
 
 	if eb.resmod != nil {

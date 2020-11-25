@@ -25,6 +25,7 @@ import (
 	_ "github.com/google/martian/v3/body"
 	_ "github.com/google/martian/v3/cookie"
 	_ "github.com/google/martian/v3/failure"
+	_ "github.com/google/martian/v3/fifo"
 	_ "github.com/google/martian/v3/header"
 	_ "github.com/google/martian/v3/martianurl"
 	_ "github.com/google/martian/v3/method"
