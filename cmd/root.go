@@ -54,7 +54,7 @@ func init() {
 	rootCmd.Flags().IntP("verbosity", "v", 2, "Verbosity")
 	viper.BindPFlag("verbosity", rootCmd.Flags().Lookup("verbosity"))
 
-	rootCmd.Flags().StringP("url", "u", "", "Proxy url")
+	rootCmd.Flags().StringP("url", "u", "", "Proxied URL")
 	viper.BindPFlag("url", rootCmd.Flags().Lookup("url"))
 
 	rootCmd.Flags().StringP("modifiers", "m", "", "Modifiers")

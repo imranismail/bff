@@ -45,12 +45,7 @@ func Serve(cmd *cobra.Command, args []string) {
 	proxy := martian.NewProxy()
 	defer proxy.Close()
 
-	url, err := url.Parse(viper.GetString("url"))
-
-	if err != nil {
-		log.Errorf("%s", err)
-		os.Exit(1)
-	} else {
+	if url, err := url.Parse(viper.GetString("url")); err != nil {
 		proxy.SetDownstreamProxy(url)
 	}
 
@@ -101,13 +96,14 @@ func configureProxy(proxy *martian.Proxy) {
 	main.SetRequestVerifier(outer)
 	main.SetResponseVerifier(outer)
 
-	logger := martianlog.NewLogger()
-	logger.SetDecode(true)
-	outer.AddRequestModifier(logger)
-	outer.AddResponseModifier(logger)
-
 	proxy.SetRequestModifier(main)
 	proxy.SetResponseModifier(main)
+
+	logger := martianlog.NewLogger()
+	logger.SetDecode(true)
+
+	outer.AddRequestModifier(logger)
+	outer.AddResponseModifier(logger)
 
 	var modifiers []json.RawMessage
 
