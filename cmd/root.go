@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -57,8 +58,13 @@ func init() {
 	rootCmd.Flags().StringP("url", "u", "", "Proxied URL")
 	viper.BindPFlag("url", rootCmd.Flags().Lookup("url"))
 
-	rootCmd.Flags().StringP("modifiers", "m", "", "Modifiers")
-	viper.BindPFlag("modifiers", rootCmd.Flags().Lookup("modifiers"))
+	if hasPipedInput() {
+		b, err := ioutil.ReadAll(os.Stdin)
+
+		if err == nil {
+			viper.Set("modifiers", b)
+		}
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -86,4 +92,9 @@ func initConfig() {
 
 	// watch config file for changes
 	viper.WatchConfig()
+}
+
+func hasPipedInput() bool {
+	fi, err := os.Stdin.Stat()
+	return err == nil && fi.Mode()&os.ModeCharDevice == 0 && fi.Size() > 0
 }
