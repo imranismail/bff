@@ -1,4 +1,4 @@
-## Intro
+## Motivation
 
 You may think that BFF stands for "Best Friends Forever", although that's very apt but that's not what this tool is built for.
 
@@ -9,6 +9,11 @@ It is built on top of [Google's Martian](https://github.com/google/martian) prox
 It can be composed to fit most use-cases and additional modifiers can be introduced and composed together to provide a customized functionality.
 
 In other words, BFF stands for ["Backend For Frontend"](https://samnewman.io/patterns/architectural/bff/).
+
+Some examples of BFF adopted by other teams
+
+- https://www.thoughtworks.com/insights/blog/bff-soundcloud
+- https://samnewman.io/patterns/architectural/bff/
 
 ## Install
 
