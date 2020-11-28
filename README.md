@@ -10,7 +10,7 @@ It can be composed to fit most use-cases and additional modifiers can be introdu
 
 In other words, BFF stands for ["Backend For Frontend"](https://samnewman.io/patterns/architectural/bff/).
 
-Some examples of BFF adopted by other teams
+Some examples of BFF adopted by other teams:
 
 - https://www.thoughtworks.com/insights/blog/bff-soundcloud
 - https://samnewman.io/patterns/architectural/bff/
