@@ -84,30 +84,41 @@ YAML
 ### Container
 
 ```sh
-docker run --rm -it -p 5000:5000 ghcr.io/imranismail/bff:latest -- <<YAML
-# fetch resources concurrently
-- body.MultiFetcher:
-    resources:
-      - body.JSONResource:
-          method: GET
-          url: https://jsonplaceholder.typicode.com/users/1
-          behavior: replace # replaces upstream http response
-          modifier:
-            status.Verifier:
-              statusCode: 200 # verify that the resource returns 200 status code
-      - body.JSONResource:
-          method: GET
-          url: https://jsonplaceholder.typicode.com/users/1/todos
-          behavior: merge # merge with the previous resource
-          group: todos # group this response into "todos" key
-          modifier:
-            status.Verifier:
-              statusCode: 200 # verify that the resource returns 200 status code
-- body.JSONPatch:
-    scope: [response]
-    patch:
-      - {op: move, from: /todos, path: /Todos}
-YAML
+# make a temp directory
+cd $(mktemp -d)
+
+# create config file
+cat > config.yml <<EOF
+modifiers: |-
+  # skip upstream roundtrip
+  - skip.RoundTrip:
+      scope: [request]
+  # fetch resources concurrently
+  - body.MultiFetcher:
+      resources:
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1
+            behavior: replace # replaces upstream http response
+            modifier:
+              status.Verifier:
+                statusCode: 200 # verify that the resource returns 200 status code
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1/todos
+            behavior: merge # merge with the previous resource
+            group: todos # group this response into "todos" key
+            modifier:
+              status.Verifier:
+                statusCode: 200 # verify that the resource returns 200 status code
+  - body.JSONPatch:
+      scope: [response]
+      patch:
+        - {op: move, from: /todos, path: /Todos}
+EOF
+
+# run it
+docker run --rm -it -v $(pwd)/config.yml:/srv/config.yml ghcr.io/imranismail/bff:latest
 ```
 
 ## Config Reference
