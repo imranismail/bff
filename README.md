@@ -112,7 +112,7 @@ YAML
 
 ## Config Reference
 
-This reference is adapted from [Martian's wiki](https://github.com/google/martian/wiki/Modifier-Reference)
+### `config.yml`
 
 ```yaml
 # env: BFF_INSECURE
@@ -177,6 +177,8 @@ modifiers: |
 ```
 
 ### Modifiers
+
+This reference is adapted from [Martian's wiki](https://github.com/google/martian/wiki/Modifier-Reference)
 
 Modifiers are able to mutate a request, a response or both.
 
