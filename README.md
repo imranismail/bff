@@ -147,7 +147,7 @@ url: ""
 verbosity: 2
 
 # env: BFF_MODIFIERS
-# stdin: accepts linux pipe ie: `cat modifiers.yaml | bff` or `bff <<EOF ...config EOF`
+# flag: N/A instead it can be set via linux pipe. example: `cat modifiers.yaml | bff` or `bff <<EOF ...config EOF`
 # type: string
 # required: false
 modifiers: ""
