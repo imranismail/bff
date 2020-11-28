@@ -114,19 +114,19 @@ YAML
 
 This reference is adapted from [Martian's wiki](https://github.com/google/martian/wiki/Modifier-Reference)
 
-These are the default values for the config unless `nil`:
-
 ```yaml
 # env: BFF_INSECURE
 # flag: --insecure -i
 # type: bool
 # required: false
+# default: false
 insecure: false
 
 # env: BFF_PORT
 # flag: -p --port
 # type: int
 # required: false
+# default: 5000
 port: 5000
 
 # env: BFF_URL
@@ -139,6 +139,7 @@ url: ""
 # flag: -v --verbosity
 # type: int
 # required: false
+# default: 2
 # options:
 #   0: nothiing
 #   1: error
@@ -150,7 +151,29 @@ verbosity: 2
 # flag: N/A instead it can be set via linux pipe. example: `cat modifiers.yaml | bff` or `bff <<EOF ...config EOF`
 # type: string
 # required: false
-modifiers: ""
+# default: ""
+modifiers: |
+  - body.MultiFetcher:
+      resources:
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1
+            behavior: replace # replaces upstream http response
+            modifier:
+              status.Verifier:
+                statusCode: 200 # verify that the resource returns 200 status code
+        - body.JSONResource:
+            method: GET
+            url: https://jsonplaceholder.typicode.com/users/1/todos
+            behavior: merge # merge with the previous resource
+            group: todos # group this response into "todos" key
+            modifier:
+              status.Verifier:
+                statusCode: 200 # verify that the resource returns 200 status code
+  - body.JSONPatch:
+      scope: [response]
+      patch:
+        - {op: move, from: /todos, path: /Todos}
 ```
 
 ### Modifiers
