@@ -43,7 +43,6 @@ bff --help
   -c, --config string      config file (default is $XDG_CONFIG_HOME/bff/config.yaml)
   -h, --help               help for bff
   -i, --insecure           Skip TLS verify
-  -m, --modifiers string   Modifiers
   -p, --port string        Port to run the server on (default "5000")
   -u, --url string         Proxy url
   -v, --verbosity int      Verbosity
@@ -56,7 +55,33 @@ The proxy is configured with a YAML configuration file. The file path can be set
 ### Executable
 
 ```sh
-bff --config ./config.yaml
+bff --insecure=false --port=5000 --verbosity=3 <<YAML
+# skip upstream roundtrip
+- skip.RoundTrip:
+    scope: [request]
+# fetch resources concurrently
+- body.MultiFetcher:
+    resources:
+      - body.JSONResource:
+          method: GET
+          url: https://jsonplaceholder.typicode.com/users/1
+          behavior: replace # replaces upstream http response
+          modifier:
+            status.Verifier:
+              statusCode: 200 # verify that the resource returns 200 status code
+      - body.JSONResource:
+          method: GET
+          url: https://jsonplaceholder.typicode.com/users/1/todos
+          behavior: merge # merge with the previous resource
+          group: todos # group this response into "todos" key
+          modifier:
+            status.Verifier:
+              statusCode: 200 # verify that the resource returns 200 status code
+- body.JSONPatch:
+    scope: [response]
+    patch:
+      - {op: move, from: /todos, path: /Todos}
+YAML
 ```
 
 _./config.yaml_
