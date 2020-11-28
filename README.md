@@ -56,9 +56,6 @@ The proxy is configured with a YAML configuration file. The file path can be set
 
 ```sh
 bff --insecure=false --port=5000 --verbosity=3 <<YAML
-# skip upstream roundtrip
-- skip.RoundTrip:
-    scope: [request]
 # fetch resources concurrently
 - body.MultiFetcher:
     resources:
@@ -84,88 +81,77 @@ bff --insecure=false --port=5000 --verbosity=3 <<YAML
 YAML
 ```
 
-_./config.yaml_
-
-```yaml
-insecure: false
-port: 5000
-url: https://jsonplaceholder.typicode.com
-verbosity: 3
-modifiers: |-
-  # skip upstream roundtrip
-  - skip.RoundTrip:
-      scope: [request]
-  # fetch resources concurrently
-  - body.MultiFetcher:
-      resources:
-        - body.JSONResource:
-            method: GET
-            url: https://jsonplaceholder.typicode.com/users/1
-            behavior: replace # replaces upstream http response
-            modifier:
-              status.Verifier:
-                statusCode: 200 # verify that the resource returns 200 status code
-        - body.JSONResource:
-            method: GET
-            url: https://jsonplaceholder.typicode.com/users/1/todos
-            behavior: merge # merge with the previous resource
-            group: todos # group this response into "todos" key
-            modifier:
-              status.Verifier:
-                statusCode: 200 # verify that the resource returns 200 status code
-  - body.JSONPatch:
-      scope: [response]
-      patch:
-        - {op: move, from: /todos, path: /Todos}
-```
-
 ### Container
 
 ```sh
-# make a temp directory
-cd $(mktemp -d)
-
-# create config file
-cat > config.yml <<EOF
-insecure: false
-port: 5000
-url: https://jsonplaceholder.typicode.com
-verbosity: 3
-modifiers: |-
-  # skip upstream roundtrip
-  - skip.RoundTrip:
-      scope: [request]
-  # fetch resources concurrently
-  - body.MultiFetcher:
-      resources:
-        - body.JSONResource:
-            method: GET
-            url: https://jsonplaceholder.typicode.com/users/1
-            behavior: replace # replaces upstream http response
-            modifier:
-              status.Verifier:
-                statusCode: 200 # verify that the resource returns 200 status code
-        - body.JSONResource:
-            method: GET
-            url: https://jsonplaceholder.typicode.com/users/1/todos
-            behavior: merge # merge with the previous resource
-            group: todos # group this response into "todos" key
-            modifier:
-              status.Verifier:
-                statusCode: 200 # verify that the resource returns 200 status code
-  - body.JSONPatch:
-      scope: [response]
-      patch:
-        - {op: move, from: /todos, path: /Todos}
-EOF
-
-# run it
-docker run --rm -it -v $(pwd)/config.yml:/srv/config.yml ghcr.io/imranismail/bff:latest
+docker run --rm -it -p 5000:5000 ghcr.io/imranismail/bff:latest -- <<YAML
+# fetch resources concurrently
+- body.MultiFetcher:
+    resources:
+      - body.JSONResource:
+          method: GET
+          url: https://jsonplaceholder.typicode.com/users/1
+          behavior: replace # replaces upstream http response
+          modifier:
+            status.Verifier:
+              statusCode: 200 # verify that the resource returns 200 status code
+      - body.JSONResource:
+          method: GET
+          url: https://jsonplaceholder.typicode.com/users/1/todos
+          behavior: merge # merge with the previous resource
+          group: todos # group this response into "todos" key
+          modifier:
+            status.Verifier:
+              statusCode: 200 # verify that the resource returns 200 status code
+- body.JSONPatch:
+    scope: [response]
+    patch:
+      - {op: move, from: /todos, path: /Todos}
+YAML
 ```
 
 ## Config Reference
 
 This reference is adapted from [Martian's wiki](https://github.com/google/martian/wiki/Modifier-Reference)
+
+These are the default values for the config unless `nil`:
+
+```yaml
+# env: BFF_INSECURE
+# flag: --insecure -i
+# type: bool
+# required: false
+insecure: false
+
+# env: BFF_PORT
+# flag: -p --port
+# type: int
+# required: false
+port: 5000
+
+# env: BFF_URL
+# flag: -u --url
+# type: string
+# required: false
+url: ""
+
+# env: BFF_VERBOSITY
+# flag: -v --verbosity
+# type: int
+# required: false
+# options:
+#   0: nothiing
+#   1: error
+#   2: info
+#   3: debug
+verbosity: 2
+
+# env: BFF_MODIFIERS
+# stdin: accepts linux pipe ie: `cat modifiers.yaml | bff` or `bff <<EOF ...config EOF`
+# type: string
+# required: false
+modifiers: ""
+```
 
 ### Modifiers
 
