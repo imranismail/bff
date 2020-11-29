@@ -90,9 +90,6 @@ cd $(mktemp -d)
 # create config file
 cat > config.yml <<EOF
 modifiers: |-
-  # skip upstream roundtrip
-  - skip.RoundTrip:
-      scope: [request]
   # fetch resources concurrently
   - body.MultiFetcher:
       resources:
