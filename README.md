@@ -4,9 +4,11 @@ The `bff` (Backend for Frontend) proxy was built out of the requirement to have 
 
 It is built on top of [Google's Martian](https://github.com/google/martian) proxy framework, therefore `bff` supports the same [built-in modifiers](https://github.com/google/martian/wiki/Modifier-Reference) as martian does by default.
 
-In addition to that, it provides a modifier to fetch remote resources and additional modifiers to merge and patch request and responses. These modifiers can be composed together to solve most use-cases that a BFF service may need.
+In addition to that, it provides a modifier to fetch and aggregate remote resources. Additionally, modifiers to merge and patch request and responses are provided out of the box.
 
-You can learn more about the BFF cloud here:
+These modifiers can be composed together to solve most use-cases that a BFF service may need.
+
+You can learn more about the BFF cloud pattern here:
 
 - https://www.thoughtworks.com/insights/blog/bff-soundcloud
 - https://samnewman.io/patterns/architectural/bff/
