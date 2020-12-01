@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/parse"
+	"github.com/imranismail/bff/jsonpatch"
 )
 
 func init() {
@@ -16,20 +16,30 @@ func init() {
 }
 
 type jsonPatchModifierJSON struct {
-	Scope []parse.ModifierType `json:"scope"`
-	Patch jsonpatch.Patch      `json:"patch"`
+	Scope                    []parse.ModifierType `json:"scope"`
+	Patch                    jsonpatch.Patch      `json:"patch"`
+	SupportNegativeIndices   bool                 `json"supportNegativeINdices"`
+	AccumulatedCopySizeLimit int64                `json"accumulatedCopySizeLimit"`
+	SkipMissingPathOnRemove  bool                 `json:"skipMissingPathOnRemove"`
+	SkipMissingPathOnMove    bool                 `json:"skipMissingPathOnMove"`
+	SkipMissingPathOnCopy    bool                 `json:"skipMissingPathOnCopy"`
+	SkipMissingPathOnReplace bool                 `json:"skipMissingPathOnReplace"`
+	EnsurePathExistsOnAdd    bool                 `json:"ensurePathExistsOnAdd`
 }
 
 // JSONPatchModifier let you change the name of the fields of the generated responses
 type JSONPatchModifier struct {
-	patch jsonpatch.Patch
+	patch   *jsonpatch.Patch
+	options *jsonpatch.ApplyOptions
 }
 
 // NewJSONPatchModifier constructs and returns a body.JSONPatchModifier.
-func NewJSONPatchModifier(patch jsonpatch.Patch) *JSONPatchModifier {
+func NewJSONPatchModifier(patch *jsonpatch.Patch, options *jsonpatch.ApplyOptions) *JSONPatchModifier {
 	log.Debugf("body.JSONPatch.New")
+
 	return &JSONPatchModifier{
-		patch: patch,
+		patch:   patch,
+		options: options,
 	}
 }
 
@@ -49,7 +59,7 @@ func (m *JSONPatchModifier) ModifyRequest(req *http.Request) error {
 		return err
 	}
 
-	modified, err := m.patch.Apply(original)
+	modified, err := m.patch.ApplyWithOptions(original, m.options)
 
 	if err != nil {
 		return err
@@ -73,7 +83,7 @@ func (m *JSONPatchModifier) ModifyResponse(res *http.Response) error {
 
 	res.Body.Close()
 
-	modified, err := m.patch.Apply(original)
+	modified, err := m.patch.ApplyWithOptions(original, m.options)
 
 	if err != nil {
 		return err
@@ -91,6 +101,15 @@ func jsonPatchModifierFromJSON(b []byte) (*parse.Result, error) {
 		return nil, err
 	}
 
-	mod := NewJSONPatchModifier(msg.Patch)
+	mod := NewJSONPatchModifier(&msg.Patch, &jsonpatch.ApplyOptions{
+		SupportNegativeIndices:   msg.SupportNegativeIndices,
+		AccumulatedCopySizeLimit: msg.AccumulatedCopySizeLimit,
+		SkipMissingPathOnRemove:  msg.SkipMissingPathOnRemove,
+		SkipMissingPathOnMove:    msg.SkipMissingPathOnMove,
+		SkipMissingPathOnCopy:    msg.SkipMissingPathOnCopy,
+		SkipMissingPathOnReplace: msg.SkipMissingPathOnReplace,
+		EnsurePathExistsOnAdd:    msg.EnsurePathExistsOnAdd,
+	})
+
 	return parse.NewResult(mod, msg.Scope)
 }

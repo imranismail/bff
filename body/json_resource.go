@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/google/martian/v3"
 	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/parse"
 	"github.com/google/martian/v3/verify"
+	"github.com/imranismail/bff/jsonpatch"
 )
 
 var httpClient = &http.Client{
