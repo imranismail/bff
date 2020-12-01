@@ -18,13 +18,13 @@ func init() {
 type jsonPatchModifierJSON struct {
 	Scope                    []parse.ModifierType `json:"scope"`
 	Patch                    jsonpatch.Patch      `json:"patch"`
-	SupportNegativeIndices   bool                 `json"supportNegativeINdices"`
-	AccumulatedCopySizeLimit int64                `json"accumulatedCopySizeLimit"`
+	SupportNegativeIndices   bool                 `json:"supportNegativeIndices"`
+	AccumulatedCopySizeLimit int64                `json:"accumulatedCopySizeLimit"`
 	SkipMissingPathOnRemove  bool                 `json:"skipMissingPathOnRemove"`
 	SkipMissingPathOnMove    bool                 `json:"skipMissingPathOnMove"`
 	SkipMissingPathOnCopy    bool                 `json:"skipMissingPathOnCopy"`
 	SkipMissingPathOnReplace bool                 `json:"skipMissingPathOnReplace"`
-	EnsurePathExistsOnAdd    bool                 `json:"ensurePathExistsOnAdd`
+	EnsurePathExistsOnAdd    bool                 `json:"ensurePathExistsOnAdd"`
 }
 
 // JSONPatchModifier let you change the name of the fields of the generated responses
