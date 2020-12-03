@@ -207,7 +207,7 @@ body.JSONResource:
 
 #### JSONPatch
 
-The `body.JSONPatch` patches the JSON request or response body using [RFC6902: JSON Merge Patch](https://tools.ietf.org/html/rfc6902)
+The `body.JSONPatch` patches the JSON request or response body using [RFC6902: JSON Patch](https://tools.ietf.org/html/rfc6902)
 
 ```yaml
 body.JSONPatch:
