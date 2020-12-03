@@ -398,11 +398,11 @@ priority.Group:
           scope: [response]
           name: foo
           value: bar
-  - priority: 100 # will run first
-    modifier:
-      header.Blacklist:
-        scope: [response]
-        names: [X-Martian]
+   - priority: 100 # will run first
+      modifier:
+        header.Blacklist:
+          scope: [response]
+          names: [X-Martian]
 ```
 
 ### Filters
