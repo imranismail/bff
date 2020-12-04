@@ -22,7 +22,7 @@ You can learn more about the BFF cloud pattern here:
 cd $(mktemp -d)
 
 # download the bff executable into it
-curl -sfL https://github.com/imranismail/bff/releases/download/v0.4.2/bff_0.4.2_Linux_x86_64.tar.gz | tar xvz
+curl -sfL https://github.com/imranismail/bff/releases/download/v0.4.3/bff_0.4.3_Linux_x86_64.tar.gz | tar xvz
 
 # move it into $PATH dir
 mv bff /usr/local/bin
@@ -211,6 +211,17 @@ The `body.JSONPatch` patches the JSON request or response body using [RFC6902: J
 
 ```yaml
 body.JSONPatch:
+  scope: [response]
+  patch:
+    - { op: move, from: /todos, path: /Todos }
+```
+
+#### JSONMapPatch
+
+The `body.JSONMapPatch` is like `body.JSONPatch` except that it applies the patch over the collection item.
+
+```yaml
+body.JSONMapPatch:
   scope: [response]
   patch:
     - { op: move, from: /todos, path: /Todos }
