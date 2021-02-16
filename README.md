@@ -22,7 +22,7 @@ You can learn more about the BFF cloud pattern here:
 cd $(mktemp -d)
 
 # download the bff executable into it
-curl -sfL https://github.com/imranismail/bff/releases/download/v0.4.3/bff_0.4.3_Linux_x86_64.tar.gz | tar xvz
+curl -sfL https://github.com/imranismail/bff/releases/download/v0.4.4/bff_0.4.4_Linux_x86_64.tar.gz | tar xvz
 
 # move it into $PATH dir
 mv bff /usr/local/bin
