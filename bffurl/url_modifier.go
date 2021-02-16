@@ -82,7 +82,7 @@ func NewModifier(u *url.URL) martian.RequestModifier {
 //
 // Example modifier JSON:
 // {
-//   "bffurl.Modifier": {
+//   "bff.URLModifier": {
 //     "scope": ["request"],
 //     "scheme": "https",
 //     "host": "www.google.com",
