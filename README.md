@@ -227,6 +227,16 @@ body.JSONMapPatch:
     - { op: move, from: /todos, path: /Todos }
 ```
 
+#### Method
+
+The `bff.MethodModifier` will modify the HTTP method, supported options are listed here https://go.googlesource.com/go/+/go1.16.2/src/net/http/method.go#10
+
+```yaml
+bff.MethodModifier:
+  scope: [request]
+  method: POST
+```
+
 #### Skip
 
 The `skip.RoundTrip` skips the HTTP roundtrip to the upstream URL that was specified via the `--url` flag
