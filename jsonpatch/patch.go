@@ -866,7 +866,7 @@ func (p Patch) copy(doc *container, op Operation, accumulatedCopySize *int64, op
 
 // FindObject extracts the document at the requested path
 func FindObject(doc []byte, path string) ([]byte, error) {
-	if path == "" || path[len(path) - 1] != '/' {
+	if path == "" || path[len(path)-1] != '/' {
 		path = path + "/"
 	}
 

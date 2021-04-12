@@ -20,7 +20,7 @@ func init() {
 type jsonMapPatchModifierJSON struct {
 	Scope                    []parse.ModifierType `json:"scope"`
 	Patch                    jsonpatch.Patch      `json:"patch"`
-	Path										 string								`json:"path"`
+	Path                     string               `json:"path"`
 	SupportNegativeIndices   bool                 `json:"supportNegativeIndices"`
 	AccumulatedCopySizeLimit int64                `json:"accumulatedCopySizeLimit"`
 	SkipMissingPathOnRemove  bool                 `json:"skipMissingPathOnRemove"`
@@ -44,7 +44,7 @@ func NewJSONMapPatchModifier(patch *jsonpatch.Patch, options *jsonpatch.ApplyOpt
 	return &JSONMapPatchModifier{
 		patch:   patch,
 		options: options,
-		path:		 path,
+		path:    path,
 	}
 }
 
