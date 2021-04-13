@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/parse"
@@ -71,18 +70,13 @@ func jsonMapPatch(original []byte, path string, patch *jsonpatch.Patch, options 
 		}
 	}
 
-	if path == "" || path == "/" {
-		modified, err = json.Marshal(array)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		var stringArray []string
-		for _, b := range array {
-			stringArray = append(stringArray, string(b))
-		}
+	modified, err = json.Marshal(array)
+	if err != nil {
+		return nil, err
+	}
 
-		p := fmt.Sprintf(`[{"op": "replace", "path": "%s", "value": [%s]}]`, path, strings.Join(stringArray, ","))
+	if path != "" && path != "/" {
+		p := fmt.Sprintf(`[{"op": "replace", "path": "%s", "value": [%s]}]`, path, modified)
 
 		patch, err := jsonpatch.DecodePatch([]byte(p))
 		if err != nil {
@@ -94,6 +88,7 @@ func jsonMapPatch(original []byte, path string, patch *jsonpatch.Patch, options 
 			return nil, err
 		}
 	}
+
 	return modified, nil
 }
 
