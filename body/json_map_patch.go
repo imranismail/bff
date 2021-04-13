@@ -76,7 +76,7 @@ func jsonMapPatch(original []byte, path string, patch *jsonpatch.Patch, options 
 	}
 
 	if path != "" && path != "/" {
-		p := fmt.Sprintf(`[{"op": "replace", "path": "%s", "value": [%s]}]`, path, modified)
+		p := fmt.Sprintf(`[{"op": "replace", "path": "%s", "value": %s}]`, path, modified)
 
 		patch, err := jsonpatch.DecodePatch([]byte(p))
 		if err != nil {
