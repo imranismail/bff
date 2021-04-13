@@ -3,6 +3,7 @@ package body
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -18,6 +19,7 @@ func init() {
 type jsonMapPatchModifierJSON struct {
 	Scope                    []parse.ModifierType `json:"scope"`
 	Patch                    jsonpatch.Patch      `json:"patch"`
+	Path                     string               `json:"path"`
 	SupportNegativeIndices   bool                 `json:"supportNegativeIndices"`
 	AccumulatedCopySizeLimit int64                `json:"accumulatedCopySizeLimit"`
 	SkipMissingPathOnRemove  bool                 `json:"skipMissingPathOnRemove"`
@@ -31,51 +33,75 @@ type jsonMapPatchModifierJSON struct {
 type JSONMapPatchModifier struct {
 	patch   *jsonpatch.Patch
 	options *jsonpatch.ApplyOptions
+	path    string
 }
 
 // NewJSONMapPatchModifier constructs and returns a body.JSONPatchModifier.
-func NewJSONMapPatchModifier(patch *jsonpatch.Patch, options *jsonpatch.ApplyOptions) *JSONMapPatchModifier {
+func NewJSONMapPatchModifier(patch *jsonpatch.Patch, options *jsonpatch.ApplyOptions, path string) *JSONMapPatchModifier {
 	log.Debugf("body.JSONMapPatch.New")
 
 	return &JSONMapPatchModifier{
 		patch:   patch,
 		options: options,
+		path:    path,
 	}
+}
+
+func jsonMapPatch(original []byte, path string, patch *jsonpatch.Patch, options *jsonpatch.ApplyOptions) ([]byte, error) {
+	var modified []byte
+
+	doc, err := jsonpatch.FindObject(original, path)
+	if err != nil {
+		return nil, err
+	}
+
+	var array []json.RawMessage
+
+	err = json.Unmarshal(doc, &array)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, d := range array {
+		array[i], err = patch.ApplyWithOptions(d, options)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	modified, err = json.Marshal(array)
+	if err != nil {
+		return nil, err
+	}
+
+	if path != "" && path != "/" {
+		p := fmt.Sprintf(`[{"op": "replace", "path": "%s", "value": %s}]`, path, modified)
+
+		patch, err := jsonpatch.DecodePatch([]byte(p))
+		if err != nil {
+			return nil, err
+		}
+
+		modified, err = patch.Apply(original)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return modified, nil
 }
 
 // ModifyRequest patches the request body.
 func (m *JSONMapPatchModifier) ModifyRequest(req *http.Request) error {
 	log.Debugf("body.JSONMapPatch.ModifyRequest: request: %s", req.URL)
 
-	var original []json.RawMessage
-	var modified []byte
-
-	err := json.NewDecoder(req.Body).Decode(&original)
-
+	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return err
 	}
 
-	err = req.Body.Close()
-
-	if err != nil {
-		return err
-	}
-
-	for i, d := range original {
-		original[i], err = m.patch.ApplyWithOptions(d, m.options)
-
-		if err != nil {
-			return err
-		}
-	}
-
-	if err != nil {
-		return err
-	}
-
-	modified, err = json.Marshal(original)
-
+	modified, err := jsonMapPatch(body, m.path, m.patch, m.options)
 	if err != nil {
 		return err
 	}
@@ -90,35 +116,12 @@ func (m *JSONMapPatchModifier) ModifyRequest(req *http.Request) error {
 func (m *JSONMapPatchModifier) ModifyResponse(res *http.Response) error {
 	log.Debugf("body.JSONMapPatch.ModifyResponse: request: %s", res.Request.URL)
 
-	var original []json.RawMessage
-	var modified []byte
-
-	err := json.NewDecoder(res.Body).Decode(&original)
-
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
 
-	err = res.Body.Close()
-
-	if err != nil {
-		return err
-	}
-
-	for i, d := range original {
-		original[i], err = m.patch.ApplyWithOptions(d, m.options)
-
-		if err != nil {
-			return err
-		}
-	}
-
-	if err != nil {
-		return err
-	}
-
-	modified, err = json.Marshal(original)
-
+	modified, err := jsonMapPatch(body, m.path, m.patch, m.options)
 	if err != nil {
 		return err
 	}
@@ -143,7 +146,7 @@ func jsonMapPatchModifierFromJSON(b []byte) (*parse.Result, error) {
 		SkipMissingPathOnCopy:    msg.SkipMissingPathOnCopy,
 		SkipMissingPathOnReplace: msg.SkipMissingPathOnReplace,
 		EnsurePathExistsOnAdd:    msg.EnsurePathExistsOnAdd,
-	})
+	}, msg.Path)
 
 	return parse.NewResult(mod, msg.Scope)
 }

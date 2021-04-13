@@ -864,6 +864,30 @@ func (p Patch) copy(doc *container, op Operation, accumulatedCopySize *int64, op
 	return nil
 }
 
+// FindObject extracts the document at the requested path
+func FindObject(doc []byte, path string) ([]byte, error) {
+	if path == "" || path[len(path)-1] != '/' {
+		path = path + "/"
+	}
+
+	var pd container
+	if isArray(doc) {
+		pd = &partialArray{}
+	} else {
+		pd = &partialDoc{}
+	}
+
+	err := json.Unmarshal(doc, pd)
+
+	if err != nil {
+		return nil, err
+	}
+
+	pd, _ = findObject(&pd, path, nil)
+
+	return json.Marshal(pd)
+}
+
 // Equal indicates if 2 JSON documents have the same structural equality.
 func Equal(a, b []byte) bool {
 	la := newLazyNode(newRawMessage(a))
