@@ -871,7 +871,7 @@ func FindObject(doc []byte, path string) ([]byte, error) {
 	}
 
 	var pd container
-	if doc[0] == '[' {
+	if isArray(doc) {
 		pd = &partialArray{}
 	} else {
 		pd = &partialDoc{}
