@@ -30,7 +30,7 @@ func init() {
 	parse.Register("status.Filter", filterFromJSON)
 }
 
-// Filter runs modifiers iff the request URL matches all of the segments in url.
+// Filter runs modifiers if the response status code matches the specified status code.
 type Filter struct {
 	*filter.Filter
 }
@@ -42,10 +42,6 @@ type filterJSON struct {
 	Scope        []parse.ModifierType `json:"scope"`
 }
 
-// filterFromJSON takes a JSON message as a byte slice and returns a
-// parse.Result that contains a URLFilter and a bitmask that represents the
-// type of modifier.
-//
 // Example JSON configuration message:
 // {
 //   "statusCode": 401,
@@ -85,7 +81,7 @@ func filterFromJSON(b []byte) (*parse.Result, error) {
 }
 
 // NewFilter constructs a filter that applies the modifer when the
-// request URL matches all of the provided URL segments.
+// response status code matches the statusCode.
 func NewFilter(statusCode int) *Filter {
 	log.Debugf("status.NewFilter: %d", statusCode)
 
@@ -97,25 +93,25 @@ func NewFilter(statusCode int) *Filter {
 }
 
 
-// Matcher is a conditional evaluator of request urls to be used in
+// Matcher is a conditional evaluator of response statud code to be used in
 // filters that take conditionals.
 type Matcher struct {
 	statusCode int
 }
 
-// NewMatcher builds a new url matcher.
+// NewMatcher builds a new status code matcher.
 func NewMatcher(statusCode int) *Matcher {
 	return &Matcher{
 		statusCode: statusCode,
 	}
 }
 
-// MatchRequest always returns false since request will not have status code
+// MatchRequest always returns false since request will not have any status code.
 func (m *Matcher) MatchRequest(req *http.Request) bool {
 	return false
 }
 
-// MatchResponse retuns true if m.StatusCode matches res.StatusCode
+// MatchResponse retuns true if m.StatusCode matches res.StatusCode.
 func (m *Matcher) MatchResponse(res *http.Response) bool {
 	matched := m.matches(res.StatusCode)
 
@@ -126,7 +122,6 @@ func (m *Matcher) MatchResponse(res *http.Response) bool {
 	return matched
 }
 
-// matches forces all non-empty URL segments to match or it returns false.
 func (m *Matcher) matches(statusCode int) bool {
 	return statusCode == m.statusCode
 }
