@@ -25,21 +25,24 @@ type jsonPatchModifierJSON struct {
 	SkipMissingPathOnCopy    bool                 `json:"skipMissingPathOnCopy"`
 	SkipMissingPathOnReplace bool                 `json:"skipMissingPathOnReplace"`
 	EnsurePathExistsOnAdd    bool                 `json:"ensurePathExistsOnAdd"`
+	SubstituteParams         bool                 `json:"substituteParams"`
 }
 
 // JSONPatchModifier let you change the name of the fields of the generated responses
 type JSONPatchModifier struct {
-	patch   *jsonpatch.Patch
-	options *jsonpatch.ApplyOptions
+	patch            *jsonpatch.Patch
+	options          *jsonpatch.ApplyOptions
+	substituteParams bool
 }
 
 // NewJSONPatchModifier constructs and returns a body.JSONPatchModifier.
-func NewJSONPatchModifier(patch *jsonpatch.Patch, options *jsonpatch.ApplyOptions) *JSONPatchModifier {
+func NewJSONPatchModifier(patch *jsonpatch.Patch, options *jsonpatch.ApplyOptions, substituteParams bool) *JSONPatchModifier {
 	log.Debugf("body.JSONPatch.New")
 
 	return &JSONPatchModifier{
-		patch:   patch,
-		options: options,
+		patch:            patch,
+		options:          options,
+		substituteParams: substituteParams,
 	}
 }
 
@@ -63,6 +66,11 @@ func (m *JSONPatchModifier) ModifyRequest(req *http.Request) error {
 
 	if err != nil {
 		return err
+	}
+
+	if m.substituteParams {
+		pattern := NewPattern(modified)
+		modified = pattern.ReplaceParams(modified, req)
 	}
 
 	req.ContentLength = int64(len(modified))
@@ -109,7 +117,7 @@ func jsonPatchModifierFromJSON(b []byte) (*parse.Result, error) {
 		SkipMissingPathOnCopy:    msg.SkipMissingPathOnCopy,
 		SkipMissingPathOnReplace: msg.SkipMissingPathOnReplace,
 		EnsurePathExistsOnAdd:    msg.EnsurePathExistsOnAdd,
-	})
+	}, msg.SubstituteParams)
 
 	return parse.NewResult(mod, msg.Scope)
 }
