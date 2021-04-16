@@ -507,7 +507,7 @@ that returns status code of `200`.
 ```yaml
 status.Filter:
   scope: [response]
-  statusCode: 200
+  statusCode: [200]
   modifier:
     header.Modifier:
       name: Mod-Run

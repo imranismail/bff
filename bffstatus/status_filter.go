@@ -36,7 +36,7 @@ type Filter struct {
 }
 
 type filterJSON struct {
-	StatusCode   int                  `json:"statusCode"`
+	StatusCode   []int                `json:"statusCode"`
 	Modifier     json.RawMessage      `json:"modifier"`
 	ElseModifier json.RawMessage      `json:"else"`
 	Scope        []parse.ModifierType `json:"scope"`
@@ -82,7 +82,7 @@ func filterFromJSON(b []byte) (*parse.Result, error) {
 
 // NewFilter constructs a filter that applies the modifer when the
 // response status code matches the statusCode.
-func NewFilter(statusCode int) *Filter {
+func NewFilter(statusCode []int) *Filter {
 	log.Debugf("status.NewFilter: %d", statusCode)
 
 	m := NewMatcher(statusCode)
@@ -95,11 +95,11 @@ func NewFilter(statusCode int) *Filter {
 // Matcher is a conditional evaluator of response statud code to be used in
 // filters that take conditionals.
 type Matcher struct {
-	statusCode int
+	statusCode []int
 }
 
 // NewMatcher builds a new status code matcher.
-func NewMatcher(statusCode int) *Matcher {
+func NewMatcher(statusCode []int) *Matcher {
 	return &Matcher{
 		statusCode: statusCode,
 	}
@@ -122,5 +122,10 @@ func (m *Matcher) MatchResponse(res *http.Response) bool {
 }
 
 func (m *Matcher) matches(statusCode int) bool {
-	return statusCode == m.statusCode
+	for _, sc := range m.statusCode {
+		if statusCode == sc {
+			return true
+		}
+	}
+	return false
 }
