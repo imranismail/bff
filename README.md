@@ -496,6 +496,24 @@ url.Filter:
       value: "true"
 ```
 
+#### Status
+
+The `status.Filter` executes its contained modifier if the response status code
+matches the specified status code.
+
+Example configuration that sets the `Mod-Run` header to true on all requests
+that returns status code of `200`.
+
+```yaml
+status.Filter:
+  scope: [response]
+  statusCode: 200
+  modifier:
+    header.Modifier:
+      name: Mod-Run
+      value: "true"
+```
+
 ### Verifiers
 
 Verifier check network traffic against defined expectations. Failed
