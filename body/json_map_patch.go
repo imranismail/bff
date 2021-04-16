@@ -27,23 +27,26 @@ type jsonMapPatchModifierJSON struct {
 	SkipMissingPathOnCopy    bool                 `json:"skipMissingPathOnCopy"`
 	SkipMissingPathOnReplace bool                 `json:"skipMissingPathOnReplace"`
 	EnsurePathExistsOnAdd    bool                 `json:"ensurePathExistsOnAdd"`
+	SubstituteParams         bool                 `json:"substituteParams"`
 }
 
 // JSONMapPatchModifier let you change the name of the fields of the generated responses
 type JSONMapPatchModifier struct {
-	patch   *jsonpatch.Patch
-	options *jsonpatch.ApplyOptions
-	path    string
+	patch            *jsonpatch.Patch
+	options          *jsonpatch.ApplyOptions
+	path             string
+	substituteParams bool
 }
 
 // NewJSONMapPatchModifier constructs and returns a body.JSONPatchModifier.
-func NewJSONMapPatchModifier(patch *jsonpatch.Patch, options *jsonpatch.ApplyOptions, path string) *JSONMapPatchModifier {
+func NewJSONMapPatchModifier(patch *jsonpatch.Patch, options *jsonpatch.ApplyOptions, path string, substituteParams bool) *JSONMapPatchModifier {
 	log.Debugf("body.JSONMapPatch.New")
 
 	return &JSONMapPatchModifier{
-		patch:   patch,
-		options: options,
-		path:    path,
+		patch:            patch,
+		options:          options,
+		path:             path,
+		substituteParams: substituteParams,
 	}
 }
 
@@ -106,6 +109,11 @@ func (m *JSONMapPatchModifier) ModifyRequest(req *http.Request) error {
 		return err
 	}
 
+	if m.substituteParams {
+		pattern := NewPattern(modified)
+		modified = pattern.ReplaceParams(modified, req)
+	}
+
 	req.ContentLength = int64(len(modified))
 	req.Body = ioutil.NopCloser(bytes.NewReader(modified))
 
@@ -146,7 +154,7 @@ func jsonMapPatchModifierFromJSON(b []byte) (*parse.Result, error) {
 		SkipMissingPathOnCopy:    msg.SkipMissingPathOnCopy,
 		SkipMissingPathOnReplace: msg.SkipMissingPathOnReplace,
 		EnsurePathExistsOnAdd:    msg.EnsurePathExistsOnAdd,
-	}, msg.Path)
+	}, msg.Path, msg.SubstituteParams)
 
 	return parse.NewResult(mod, msg.Scope)
 }
