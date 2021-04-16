@@ -92,7 +92,6 @@ func NewFilter(statusCode int) *Filter {
 	return &Filter{f}
 }
 
-
 // Matcher is a conditional evaluator of response statud code to be used in
 // filters that take conditionals.
 type Matcher struct {
