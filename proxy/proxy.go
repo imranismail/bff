@@ -38,6 +38,7 @@ import (
 	_ "github.com/google/martian/v3/static"
 	_ "github.com/google/martian/v3/status"
 	_ "github.com/imranismail/bff/bffmethod"
+	_ "github.com/imranismail/bff/bffquerystring"
 	_ "github.com/imranismail/bff/bffstatus"
 	_ "github.com/imranismail/bff/bffurl"
 	_ "github.com/imranismail/bff/body"
