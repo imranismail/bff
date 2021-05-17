@@ -307,6 +307,27 @@ querystring.Modifier:
   value: bar
 ```
 
+#### Query String Values Mapping
+
+The `querystring.ValuesMap` allows mapping query string values from one to another.
+Example configuration that modify the values of the fields `lorem` and `fruit`
+on requests:
+
+```yaml
+querystring.ValuesMap:
+  scope: [request, response]
+  maps:
+    - field: lorem
+      mapping:
+        foo: bar
+        baz: buzz
+    - field: fruit
+      mapping:
+        "1": apple
+        "2": banana
+        "3": orange
+```
+
 #### Status
 
 The `status.Modifier` modifies the HTTP status code on a response.
