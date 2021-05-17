@@ -315,7 +315,7 @@ on requests:
 
 ```yaml
 querystring.ValuesMap:
-  scope: [request, response]
+  scope: [request]
   maps:
     - field: lorem
       mapping:
