@@ -310,10 +310,10 @@ querystring.Modifier:
   value: bar
 ```
 
-The additional `bff.querystringModifier` allows copy and moving the parameters.
+The additional `bff.querystringModifier` allows copying and renaming the parameters.
 
-Example configuration that copy the value of `foo` to `fuu` and moving the value
-of `bar` to `baz`:
+Example configuration that copies the value of `foo` to `fuu` and rename the field
+`bar` to `baz`:
 
 ```yaml
 bff.QueryStringModifier
