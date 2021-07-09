@@ -214,6 +214,7 @@ body.JSONPatch:
   scope: [response]
   patch:
     - { op: move, from: /todos, path: /Todos }
+    - { op: add, path: /foo, value: ":foo" } # substitution using values extracted from bff.URLFilter
 ```
 
 #### JSONMapPatch
@@ -223,8 +224,10 @@ The `body.JSONMapPatch` is like `body.JSONPatch` except that it applies the patc
 ```yaml
 body.JSONMapPatch:
   scope: [response]
+  path: /array # optional, defaults to /
   patch:
     - { op: move, from: /todos, path: /Todos }
+    - { op: add, path: /foo, value: ":foo" } # substitution using values extracted from bff.URLFilter
 ```
 
 #### Method
@@ -305,6 +308,25 @@ querystring.Modifier:
   scope: [request, response]
   name: foo
   value: bar
+```
+
+The additional `bff.querystringModifier` allows copying and renaming the parameters.
+
+Example configuration that copies the value of `foo` to `fuu` and rename the field
+`bar` to `baz`:
+
+```yaml
+bff.QueryStringModifier
+  scope: [request]
+  op: copy
+  name: foo
+  value: fuu
+
+bff.QueryStringModifier
+  scope: [request]
+  op: move
+  name: bar
+  value: baz
 ```
 
 #### Status
@@ -494,6 +516,22 @@ url.Filter:
       scope: [request]
       name: Mod-Run
       value: "true"
+```
+
+The additional `bff.URLFilter` allows extracting the values of path params
+to be use in other modifiers.
+
+Example configuration that extracts the path variable `:bar` from the requested path
+and later used to modify the path into a different format.
+
+Example
+```yaml
+bff.URLFilter:
+  scope: [request]
+  path: "/foo/:bar"
+  modifier:
+    bff.URLModifier:
+      path: "/baz/:bar"
 ```
 
 #### Status
