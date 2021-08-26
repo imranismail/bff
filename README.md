@@ -200,6 +200,7 @@ body.JSONResource:
   method: GET
   url: https://jsonplaceholder.typicode.com/users/1
   behavior: replace # replaces upstream http response
+  allowedHeaders: ['Authorization'] # allow downstream req headers
   modifier:
     status.Verifier:
       statusCode: 200
