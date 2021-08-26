@@ -1,9 +1,10 @@
 name: goreleaser
 
 on:
-  push:
+  pull_request:
     branches:
       - "master"
+  push:
     tags:
       - v*.*.*
 
