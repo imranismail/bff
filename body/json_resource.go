@@ -93,7 +93,7 @@ func (m *JSONResource) SetResponseModifier(resmod martian.ResponseModifier) {
 
 // FetchResource fetches the resource
 func (m *JSONResource) FetchResource(downstreamReq *http.Request) (martian.ResponseModifier, error) {
-	log.Debugf("body.JSONResource.FetchResource: method(%s) url(%s)", m.method, m.resourceURL)
+	log.Debugf("body.JSONResource.FetchResource: method(%s) url(%s) allowedHeaders(%s)", m.method, m.resourceURL, m.allowedHeaders)
 
 	upstreamReq, err := http.NewRequest(
 		m.method,
@@ -107,13 +107,11 @@ func (m *JSONResource) FetchResource(downstreamReq *http.Request) (martian.Respo
 
 	upstreamReq.Header.Set("Accept", "application/json")
 
-	for dk, dv := range downstreamReq.Header {
-		for _, ah := range m.allowedHeaders {
-			if ah == dk {
-				for _, v := range dv {
-					upstreamReq.Header.Add(dk, v)
-				}
-			}
+	for _, allowed := range m.allowedHeaders {
+		header := downstreamReq.Header.Get(allowed)
+
+		if header != "" {
+			upstreamReq.Header.Add(allowed, header)
 		}
 	}
 
