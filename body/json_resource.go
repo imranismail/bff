@@ -24,12 +24,13 @@ func init() {
 }
 
 type jsonResourceJSON struct {
-	Scope       []parse.ModifierType `json:"scope"`
-	ResourceURL string               `json:"url"`
-	Method      string               `json:"method"`
-	Behavior    string               `json:"behavior"`
-	Group       string               `json:"group"`
-	Modifier    json.RawMessage      `json:"modifier"`
+	Scope          []parse.ModifierType `json:"scope"`
+	ResourceURL    string               `json:"url"`
+	Method         string               `json:"method"`
+	Behavior       string               `json:"behavior"`
+	Group          string               `json:"group"`
+	AllowedHeaders []string             `json:"allowedHeaders"`
+	Modifier       json.RawMessage      `json:"modifier"`
 }
 
 type jsonResource struct {
@@ -40,12 +41,13 @@ type jsonResource struct {
 
 // JSONResource let you change the name of the fields of the generated responses
 type JSONResource struct {
-	resourceURL string
-	method      string
-	behavior    string
-	group       string
-	reqmod      martian.RequestModifier
-	resmod      martian.ResponseModifier
+	resourceURL    string
+	method         string
+	behavior       string
+	group          string
+	allowedHeaders []string
+	reqmod         martian.RequestModifier
+	resmod         martian.ResponseModifier
 }
 
 func validBehavior(behavior string) bool {
@@ -53,7 +55,7 @@ func validBehavior(behavior string) bool {
 }
 
 // NewJSONResource constructs and returns a body.JSONDataSourceModifier.
-func NewJSONResource(method string, resourceURL string, behavior string, group string) (*JSONResource, error) {
+func NewJSONResource(method string, resourceURL string, behavior string, group string, allowedHeaders []string) (*JSONResource, error) {
 	if behavior == "" {
 		behavior = "replace"
 	}
@@ -69,10 +71,11 @@ func NewJSONResource(method string, resourceURL string, behavior string, group s
 	log.Debugf("body.JSONResource.New: method(%s) url(%s) behavior(%s)", method, resourceURL, behavior)
 
 	m := &JSONResource{
-		resourceURL: resourceURL,
-		method:      method,
-		behavior:    behavior,
-		group:       group,
+		resourceURL:    resourceURL,
+		method:         method,
+		behavior:       behavior,
+		group:          group,
+		allowedHeaders: allowedHeaders,
 	}
 
 	return m, nil
@@ -89,10 +92,10 @@ func (m *JSONResource) SetResponseModifier(resmod martian.ResponseModifier) {
 }
 
 // FetchResource fetches the resource
-func (m *JSONResource) FetchResource() (martian.ResponseModifier, error) {
-	log.Debugf("body.JSONResource.FetchResource: method(%s) url(%s)", m.method, m.resourceURL)
+func (m *JSONResource) FetchResource(downstreamReq *http.Request) (martian.ResponseModifier, error) {
+	log.Debugf("body.JSONResource.FetchResource: method(%s) url(%s) allowedHeaders(%s)", m.method, m.resourceURL, m.allowedHeaders)
 
-	req, err := http.NewRequest(
+	upstreamReq, err := http.NewRequest(
 		m.method,
 		m.resourceURL,
 		bytes.NewBuffer([]byte{}),
@@ -102,25 +105,33 @@ func (m *JSONResource) FetchResource() (martian.ResponseModifier, error) {
 		return nil, err
 	}
 
-	_, removeReq, err := martian.TestContext(req, nil, nil)
+	upstreamReq.Header.Set("Accept", "application/json")
+
+	for _, allowed := range m.allowedHeaders {
+		header := downstreamReq.Header.Get(allowed)
+
+		if header != "" {
+			upstreamReq.Header.Add(allowed, header)
+		}
+	}
+
+	_, cleanup, err := martian.TestContext(upstreamReq, nil, nil)
 
 	if err != nil {
 		return nil, err
 	}
 
-	defer removeReq()
+	defer cleanup()
 
 	if m.reqmod != nil {
-		err = m.reqmod.ModifyRequest(req)
+		err = m.reqmod.ModifyRequest(upstreamReq)
 
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	req.Header.Set("Accept", "application/json")
-
-	res, err := httpClient.Do(req)
+	res, err := httpClient.Do(upstreamReq)
 
 	if err != nil {
 		return nil, err
@@ -128,7 +139,7 @@ func (m *JSONResource) FetchResource() (martian.ResponseModifier, error) {
 
 	defer res.Body.Close()
 
-	res.Request = req
+	res.Request = upstreamReq
 
 	if err != nil {
 		return nil, err
@@ -159,7 +170,7 @@ func (m *JSONResource) FetchResource() (martian.ResponseModifier, error) {
 func (m *JSONResource) ModifyResponse(res *http.Response) error {
 	log.Debugf("body.JSONResource.ModifyResponse: request: %s", res.Request.URL)
 
-	resource, err := m.FetchResource()
+	resource, err := m.FetchResource(res.Request)
 
 	if err != nil {
 		return err
@@ -196,7 +207,7 @@ func jsonResourceFromJSON(b []byte) (*parse.Result, error) {
 		return nil, err
 	}
 
-	m, err := NewJSONResource(msg.Method, msg.ResourceURL, msg.Behavior, msg.Group)
+	m, err := NewJSONResource(msg.Method, msg.ResourceURL, msg.Behavior, msg.Group, msg.AllowedHeaders)
 
 	if err != nil {
 		return nil, err
@@ -267,13 +278,9 @@ func (resource *jsonResource) ModifyResponse(res *http.Response) error {
 		res.ContentLength = int64(len(modified))
 		res.Body = ioutil.NopCloser(bytes.NewReader(modified))
 
-		break
-
 	case "replace":
 		res.ContentLength = int64(len(resource.body))
 		res.Body = ioutil.NopCloser(bytes.NewReader(resource.body))
-
-		break
 	}
 
 	return nil
