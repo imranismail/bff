@@ -219,7 +219,7 @@ body.JSONPatch:
 
 #### JSONMapPatch
 
-The `body.JSONMapPatch` is like `body.JSONPatch` except that it applies the patch over the collection item.
+The `body.JSONMapPatch` is like `body.JSONPatch` except that it applies the patch over a collection.
 
 ```yaml
 body.JSONMapPatch:
