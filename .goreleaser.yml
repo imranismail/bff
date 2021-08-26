@@ -14,7 +14,7 @@ builds:
       - windows
       - darwin
 dockers:
-  - binaries:
+  - ids:
       - bff
     image_templates:
       - ghcr.io/imranismail/bff:{{ .Tag }}
