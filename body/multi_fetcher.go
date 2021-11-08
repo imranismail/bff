@@ -23,7 +23,7 @@ type multiFetcherJSON struct {
 // ResourceFetcher WIP
 type ResourceFetcher interface {
 	verify.ResponseVerifier
-	FetchResource() (martian.ResponseModifier, error)
+	FetchResource(*http.Request) (martian.ResponseModifier, error)
 }
 
 // MultiFetcher let you change the name of the fields of the generated responses
@@ -51,8 +51,7 @@ func (m *MultiFetcher) ModifyResponse(res *http.Response) error {
 
 		go func(i int, fetcher ResourceFetcher) {
 			defer wg.Done()
-
-			resource, err := fetcher.FetchResource()
+			resource, err := fetcher.FetchResource(res.Request)
 
 			if err != nil {
 				merrmu.Lock()
