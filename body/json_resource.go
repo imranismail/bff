@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/google/martian/v3"
 	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/parse"
 	"github.com/google/martian/v3/verify"
+	"github.com/imranismail/bff/bffurl"
 	"github.com/imranismail/bff/jsonpatch"
 )
 
@@ -41,7 +43,7 @@ type jsonResource struct {
 
 // JSONResource let you change the name of the fields of the generated responses
 type JSONResource struct {
-	resourceURL    string
+	resourceURL    *url.URL
 	method         string
 	behavior       string
 	group          string
@@ -55,7 +57,7 @@ func validBehavior(behavior string) bool {
 }
 
 // NewJSONResource constructs and returns a body.JSONDataSourceModifier.
-func NewJSONResource(method string, resourceURL string, behavior string, group string, allowedHeaders []string) (*JSONResource, error) {
+func NewJSONResource(method string, resourceURLStr string, behavior string, group string, allowedHeaders []string) (*JSONResource, error) {
 	if behavior == "" {
 		behavior = "replace"
 	}
@@ -68,7 +70,13 @@ func NewJSONResource(method string, resourceURL string, behavior string, group s
 		return nil, fmt.Errorf("body.JSONResource.New: invalid behavior %q", behavior)
 	}
 
-	log.Debugf("body.JSONResource.New: method(%s) url(%s) behavior(%s)", method, resourceURL, behavior)
+	log.Debugf("body.JSONResource.New: method(%s) url(%s) behavior(%s)", method, resourceURLStr, behavior)
+
+	resourceURL, err := url.Parse(resourceURLStr)
+
+	if err != nil {
+		return nil, err
+	}
 
 	m := &JSONResource{
 		resourceURL:    resourceURL,
@@ -97,7 +105,7 @@ func (m *JSONResource) FetchResource(downstreamReq *http.Request) (martian.Respo
 
 	upstreamReq, err := http.NewRequest(
 		m.method,
-		m.resourceURL,
+		m.resourceURL.String(),
 		bytes.NewBuffer([]byte{}),
 	)
 
@@ -113,6 +121,12 @@ func (m *JSONResource) FetchResource(downstreamReq *http.Request) (martian.Respo
 		if header != "" {
 			upstreamReq.Header.Add(allowed, header)
 		}
+	}
+
+	if upstreamReq.URL.Path != "" {
+		ctx := martian.NewContext(downstreamReq)
+		pattern := bffurl.NewPattern(m.resourceURL.Path)
+		upstreamReq.URL.Path = pattern.ReplaceParams(ctx, upstreamReq.URL.Path)
 	}
 
 	_, cleanup, err := martian.TestContext(upstreamReq, nil, nil)

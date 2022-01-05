@@ -59,9 +59,7 @@ func (p *Param) Name() string {
 }
 
 // Get WIP
-func (p *Param) Get(req *http.Request) string {
-	ctx := martian.NewContext(req)
-
+func (p *Param) Get(ctx *martian.Context) string {
 	if val, ok := ctx.Get(p.Name()); ok {
 		return val.(string)
 	}
@@ -126,11 +124,13 @@ func NewPattern(raw string) *Pattern {
 	return p
 }
 
-// ReplacePath WIP
-func (p *Pattern) ReplacePath(r *http.Request) {
+// ReplaceParams WIP
+func (p *Pattern) ReplaceParams(ctx *martian.Context, str string) string {
 	for _, param := range p.params {
-		r.URL.Path = strings.ReplaceAll(r.URL.Path, param.RawName(), param.Get(r))
+		str = strings.ReplaceAll(str, param.RawName(), param.Get(ctx))
 	}
+
+	return str
 }
 
 // Match WIP
@@ -167,9 +167,5 @@ func (p *Pattern) Match(r *http.Request) bool {
 
 	tail := p.prefixes[len(p.params)]
 
-	if path != tail {
-		return false
-	}
-
-	return true
+	return path == tail
 }
