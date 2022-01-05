@@ -115,6 +115,7 @@ func (m *JSONResource) FetchResource(downstreamReq *http.Request) (martian.Respo
 		return nil, err
 	}
 
+	upstreamReq.Header.Set("User-Agent", "bff/v0.x.x")
 	upstreamReq.Header.Set("Accept", "application/json")
 
 	for _, allowed := range m.allowedHeaders {
