@@ -54,9 +54,9 @@ func (m *Modifier) ModifyRequest(req *http.Request) error {
 		req.URL.Host = m.url.Host
 	}
 	if m.url.Path != "" {
-		pattern := NewPattern(m.url.Path)
 		ctx := martian.NewContext(req)
-		req.URL.Path = pattern.ReplaceParams(ctx, req.URL.Path)
+		pattern := NewPattern(m.url.Path)
+		req.URL.Path = pattern.ReplaceParams(ctx, m.url.Path)
 	}
 	if m.url.RawQuery != "" {
 		req.URL.RawQuery = m.url.RawQuery
