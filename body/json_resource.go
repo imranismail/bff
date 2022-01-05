@@ -50,6 +50,7 @@ type JSONResource struct {
 	allowedHeaders []string
 	reqmod         martian.RequestModifier
 	resmod         martian.ResponseModifier
+	pattern        *bffurl.Pattern
 }
 
 func validBehavior(behavior string) bool {
@@ -84,6 +85,7 @@ func NewJSONResource(method string, resourceURLStr string, behavior string, grou
 		behavior:       behavior,
 		group:          group,
 		allowedHeaders: allowedHeaders,
+		pattern:        bffurl.NewPattern(resourceURL.Path),
 	}
 
 	return m, nil
@@ -125,8 +127,7 @@ func (m *JSONResource) FetchResource(downstreamReq *http.Request) (martian.Respo
 
 	if upstreamReq.URL.Path != "" {
 		ctx := martian.NewContext(downstreamReq)
-		pattern := bffurl.NewPattern(m.resourceURL.Path)
-		upstreamReq.URL.Path = pattern.ReplaceParams(ctx, upstreamReq.URL.Path)
+		upstreamReq.URL.Path = m.pattern.ReplaceParams(ctx, upstreamReq.URL.Path)
 	}
 
 	_, cleanup, err := martian.TestContext(upstreamReq, nil, nil)
