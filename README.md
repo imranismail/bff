@@ -22,7 +22,7 @@ You can learn more about the BFF cloud pattern here:
 cd $(mktemp -d)
 
 # download the bff executable into it
-curl -sfL https://github.com/imranismail/bff/releases/download/v0.4.4/bff_0.4.4_Linux_x86_64.tar.gz | tar xvz
+curl -sfL https://github.com/imranismail/bff/releases/download/v0.5.0/bff_0.5.0_Linux_x86_64.tar.gz | tar xvz
 
 # move it into $PATH dir
 mv bff /usr/local/bin
@@ -200,7 +200,7 @@ body.JSONResource:
   method: GET
   url: https://jsonplaceholder.typicode.com/users/1
   behavior: replace # replaces upstream http response
-  allowedHeaders: ['Authorization'] # allow downstream req headers
+  allowedHeaders: ["Authorization"] # allow downstream req headers
   modifier:
     status.Verifier:
       statusCode: 200
@@ -526,6 +526,7 @@ Example configuration that extracts the path variable `:bar` from the requested 
 and later used to modify the path into a different format.
 
 Example
+
 ```yaml
 bff.URLFilter:
   scope: [request]
