@@ -931,7 +931,7 @@ func (p Patch) ApplyIndent(doc []byte, indent string) ([]byte, error) {
 // It returns the new document indented.
 func (p Patch) ApplyIndentWithOptions(doc []byte, indent string, options *ApplyOptions) ([]byte, error) {
 	var pd container
-	if doc[0] == '[' {
+	if isArray(doc) {
 		pd = &partialArray{}
 	} else {
 		pd = &partialDoc{}

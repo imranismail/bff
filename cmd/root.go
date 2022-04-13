@@ -6,9 +6,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/google/martian/v3/log"
+	mlog "github.com/google/martian/v3/log"
 	"github.com/imranismail/bff/proxy"
 	"github.com/spf13/cobra"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/adrg/xdg"
 	"github.com/spf13/viper"
@@ -31,7 +34,7 @@ and modifing HTTP request and response.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Errorf("Root: %v", err)
+		log.Error().Msgf("Root: %v", err)
 		os.Exit(1)
 	}
 }
@@ -67,6 +70,34 @@ func init() {
 	}
 }
 
+type Logger struct {
+	zlog zerolog.Logger
+}
+
+func (logger *Logger) Infof(format string, args ...interface{}) {
+	log.Info().Msgf(format, args...)
+}
+
+func (logger *Logger) Debugf(format string, args ...interface{}) {
+	log.Debug().Msgf(format, args...)
+}
+
+func (logger *Logger) Errorf(format string, args ...interface{}) {
+	log.Error().Msgf(format, args...)
+}
+
+func NewLogger() Logger {
+	level, err := zerolog.ParseLevel(viper.GetString("verbosity"))
+
+	if err != nil {
+		log.Fatal().Msgf("Failed to parse verbosity: %v", err)
+	}
+
+	zerolog.SetGlobalLevel(level)
+
+	return Logger{}
+}
+
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
@@ -83,11 +114,12 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
-	log.SetLevel(viper.GetInt("verbosity"))
+	logger := NewLogger()
+	mlog.SetLogger(&logger)
 
 	// If a config file is found, read it in
 	if err == nil {
-		log.Infof("Using config file: %v", viper.ConfigFileUsed())
+		log.Info().Msgf("Using config file: %v", viper.ConfigFileUsed())
 	}
 
 	// watch config file for changes
