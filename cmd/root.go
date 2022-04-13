@@ -10,6 +10,7 @@ import (
 	"github.com/imranismail/bff/proxy"
 	"github.com/spf13/cobra"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/adrg/xdg"
@@ -69,7 +70,9 @@ func init() {
 	}
 }
 
-type Logger struct{}
+type Logger struct {
+	zlog zerolog.Logger
+}
 
 func (logger *Logger) Infof(format string, args ...interface{}) {
 	log.Info().Msgf(format, args...)
@@ -104,8 +107,14 @@ func initConfig() {
 
 	err := viper.ReadInConfig()
 	logger := NewLogger()
+	level, err := zerolog.ParseLevel(viper.GetString("verbosity"))
+
+	if err != nil {
+		log.Fatal().Msgf("Failed to parse verbosity: %v", err)
+	}
+
+	zerolog.SetGlobalLevel(level)
 	mlog.SetLogger(&logger)
-	mlog.SetLevel(viper.GetInt("verbosity"))
 
 	// If a config file is found, read it in
 	if err == nil {
