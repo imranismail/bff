@@ -10,7 +10,6 @@ import (
 	"github.com/imranismail/bff/proxy"
 	"github.com/spf13/cobra"
 
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/adrg/xdg"
@@ -104,7 +103,6 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	logger := NewLogger()
 	mlog.SetLogger(&logger)
 	mlog.SetLevel(viper.GetInt("verbosity"))
