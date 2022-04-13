@@ -42,10 +42,14 @@ import (
 	_ "github.com/imranismail/bff/bffstatus"
 	_ "github.com/imranismail/bff/bffurl"
 	_ "github.com/imranismail/bff/body"
+	"github.com/imranismail/bff/logger"
 )
 
 // Serve start the webserver
 func Serve(cmd *cobra.Command, args []string) {
+	logger := logger.NewLogger()
+	log.SetLogger(&logger)
+
 	proxy := martian.NewProxy()
 	defer proxy.Close()
 
@@ -70,6 +74,8 @@ func Serve(cmd *cobra.Command, args []string) {
 	viper.OnConfigChange(func(evt fsnotify.Event) {
 		log.Infof("proxy.Serve: Reconfiguring: %v", evt.Name)
 		configureProxy(proxy)
+		log.Infof("logger: Reconfiguring: %v", evt.Name)
+		logger.Configure()
 	})
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", viper.GetString("port")))
@@ -92,19 +98,20 @@ func Serve(cmd *cobra.Command, args []string) {
 }
 
 func configureProxy(proxy *martian.Proxy) {
-	outer, inner := httpspec.NewStack("martian")
+	outer, inner := httpspec.NewStack("bff")
 
 	main := NewErrorBoundary()
+	proxy.SetRequestModifier(main)
+	proxy.SetResponseModifier(main)
+
 	main.SetRequestModifier(outer)
 	main.SetResponseModifier(outer)
 	main.SetRequestVerifier(outer)
 	main.SetResponseVerifier(outer)
 
-	proxy.SetRequestModifier(main)
-	proxy.SetResponseModifier(main)
-
 	logger := martianlog.NewLogger()
-	logger.SetDecode(true)
+	logger.SetDecode(false)
+	logger.SetHeadersOnly(true)
 
 	outer.AddRequestModifier(logger)
 	outer.AddResponseModifier(logger)
