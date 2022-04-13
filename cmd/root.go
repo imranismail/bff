@@ -87,6 +87,14 @@ func (logger *Logger) Errorf(format string, args ...interface{}) {
 }
 
 func NewLogger() Logger {
+	level, err := zerolog.ParseLevel(viper.GetString("verbosity"))
+
+	if err != nil {
+		log.Fatal().Msgf("Failed to parse verbosity: %v", err)
+	}
+
+	zerolog.SetGlobalLevel(level)
+
 	return Logger{}
 }
 
@@ -107,13 +115,6 @@ func initConfig() {
 
 	err := viper.ReadInConfig()
 	logger := NewLogger()
-	level, err := zerolog.ParseLevel(viper.GetString("verbosity"))
-
-	if err != nil {
-		log.Fatal().Msgf("Failed to parse verbosity: %v", err)
-	}
-
-	zerolog.SetGlobalLevel(level)
 	mlog.SetLogger(&logger)
 
 	// If a config file is found, read it in
