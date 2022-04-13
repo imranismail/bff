@@ -6,17 +6,17 @@ import (
 	"path"
 	"strings"
 
-	mlog "github.com/google/martian/v3/log"
+	"github.com/imranismail/bff/meta"
 	"github.com/imranismail/bff/proxy"
 	"github.com/spf13/cobra"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 
 	"github.com/adrg/xdg"
 	"github.com/spf13/viper"
 )
 
+var log = zerolog.New(zerolog.NewConsoleWriter()).With().Timestamp().Logger()
 var cfgFile string
 var cfgPath = path.Join(xdg.ConfigHome, "bff")
 
@@ -27,7 +27,8 @@ var rootCmd = &cobra.Command{
 	Long: `
 An API-aware proxy that is cabaple of routing, filtering, verifying
 and modifing HTTP request and response.`,
-	Run: proxy.Serve,
+	Run:     proxy.Serve,
+	Version: meta.Version,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -70,34 +71,6 @@ func init() {
 	}
 }
 
-type Logger struct {
-	zlog zerolog.Logger
-}
-
-func (logger *Logger) Infof(format string, args ...interface{}) {
-	log.Info().Msgf(format, args...)
-}
-
-func (logger *Logger) Debugf(format string, args ...interface{}) {
-	log.Debug().Msgf(format, args...)
-}
-
-func (logger *Logger) Errorf(format string, args ...interface{}) {
-	log.Error().Msgf(format, args...)
-}
-
-func NewLogger() Logger {
-	level, err := zerolog.ParseLevel(viper.GetString("verbosity"))
-
-	if err != nil {
-		log.Fatal().Msgf("Failed to parse verbosity: %v", err)
-	}
-
-	zerolog.SetGlobalLevel(level)
-
-	return Logger{}
-}
-
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
@@ -114,16 +87,12 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
-	logger := NewLogger()
-	mlog.SetLogger(&logger)
 
 	// If a config file is found, read it in
 	if err == nil {
 		log.Info().Msgf("Using config file: %v", viper.ConfigFileUsed())
+		viper.WatchConfig()
 	}
-
-	// watch config file for changes
-	viper.WatchConfig()
 }
 
 func hasPipedInput() bool {

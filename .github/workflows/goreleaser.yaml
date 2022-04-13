@@ -33,6 +33,7 @@ jobs:
           args: release --rm-dist --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ github.ref_name }}
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: goreleaser/goreleaser-action@v2
@@ -41,3 +42,4 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ github.ref_name }}
