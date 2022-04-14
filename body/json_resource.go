@@ -14,8 +14,8 @@ import (
 	"github.com/google/martian/v3/parse"
 	"github.com/google/martian/v3/verify"
 	"github.com/imranismail/bff/bffurl"
+	"github.com/imranismail/bff/config"
 	"github.com/imranismail/bff/jsonpatch"
-	"github.com/imranismail/bff/meta"
 )
 
 var httpClient = &http.Client{
@@ -116,7 +116,7 @@ func (m *JSONResource) FetchResource(downstreamReq *http.Request) (martian.Respo
 		return nil, err
 	}
 
-	upstreamReq.Header.Set("User-Agent", fmt.Sprintf("bff/%s", meta.Version))
+	upstreamReq.Header.Set("User-Agent", fmt.Sprintf("bff/%s", config.Version))
 	upstreamReq.Header.Set("Accept", "application/json")
 
 	for _, allowed := range m.allowedHeaders {

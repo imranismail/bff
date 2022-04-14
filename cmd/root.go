@@ -6,7 +6,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/imranismail/bff/meta"
+	"github.com/imranismail/bff/config"
 	"github.com/imranismail/bff/proxy"
 	"github.com/spf13/cobra"
 
@@ -28,7 +28,7 @@ var rootCmd = &cobra.Command{
 An API-aware proxy that is cabaple of routing, filtering, verifying
 and modifing HTTP request and response.`,
 	Run:     proxy.Serve,
-	Version: meta.Version,
+	Version: config.Version,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -8,7 +8,7 @@ before:
     - go generate ./...
 builds:
   - ldflags:
-      - -s -w -X "meta.Version={{ .Env.RELEASE_VERSION }}"
+      - -s -w -X "github.com/imranismail/bff/config.Version={{ .Env.RELEASE_VERSION }}"
     env:
       - CGO_ENABLED=0
     goos:
