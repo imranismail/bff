@@ -17,6 +17,7 @@ import (
 	"github.com/google/martian/v3/log"
 	"github.com/google/martian/v3/martianlog"
 	"github.com/google/martian/v3/parse"
+	"github.com/imranismail/bff/healthcheck"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"sigs.k8s.io/yaml"
@@ -110,12 +111,9 @@ func configureProxy(proxy *martian.Proxy) {
 	main.SetRequestVerifier(outer)
 	main.SetResponseVerifier(outer)
 
-	logger := martianlog.NewLogger()
-	logger.SetDecode(false)
-	logger.SetHeadersOnly(true)
-
-	outer.AddRequestModifier(logger)
-	outer.AddResponseModifier(logger)
+	hcm := healthcheck.NewModifier(200)
+	outer.AddRequestModifier(hcm)
+	outer.AddResponseModifier(hcm)
 
 	var modifiers []json.RawMessage
 
@@ -146,4 +144,10 @@ func configureProxy(proxy *martian.Proxy) {
 			inner.AddResponseModifier(resmod)
 		}
 	}
+
+	lm := martianlog.NewLogger()
+	lm.SetDecode(false)
+	lm.SetHeadersOnly(true)
+	outer.AddRequestModifier(lm)
+	outer.AddResponseModifier(lm)
 }
