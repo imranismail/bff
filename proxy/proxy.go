@@ -42,6 +42,7 @@ import (
 	_ "github.com/imranismail/bff/bffstatus"
 	_ "github.com/imranismail/bff/bffurl"
 	_ "github.com/imranismail/bff/body"
+	"github.com/imranismail/bff/config"
 	"github.com/imranismail/bff/logger"
 )
 
@@ -85,7 +86,7 @@ func Serve(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	log.Infof("martian: starting proxy on %s", listener.Addr().String())
+	log.Infof("bff: starting proxy %s on %s", config.Version, listener.Addr().String())
 
 	go proxy.Serve(listener)
 
@@ -94,7 +95,7 @@ func Serve(cmd *cobra.Command, args []string) {
 
 	<-sigc
 
-	log.Infof("martian: shutting down")
+	log.Infof("bff: shutting down")
 }
 
 func configureProxy(proxy *martian.Proxy) {
