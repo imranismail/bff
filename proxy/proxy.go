@@ -11,12 +11,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/google/martian/v3"
 	"github.com/google/martian/v3/httpspec"
-	"github.com/google/martian/v3/log"
-	"github.com/google/martian/v3/martianlog"
 	"github.com/google/martian/v3/parse"
+	"github.com/imranismail/bff/bfflog"
 	"github.com/imranismail/bff/healthcheck"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -44,16 +42,17 @@ import (
 	_ "github.com/imranismail/bff/bffurl"
 	_ "github.com/imranismail/bff/body"
 	"github.com/imranismail/bff/config"
-	"github.com/imranismail/bff/logger"
+	"github.com/imranismail/bff/log"
 )
+
+var Proxy *martian.Proxy
 
 // Serve start the webserver
 func Serve(cmd *cobra.Command, args []string) {
-	logger := logger.NewLogger()
-	log.SetLogger(&logger)
-
 	proxy := martian.NewProxy()
 	defer proxy.Close()
+
+	Proxy = proxy
 
 	if url, err := url.Parse(viper.GetString("url")); err != nil {
 		proxy.SetDownstreamProxy(url)
@@ -72,13 +71,6 @@ func Serve(cmd *cobra.Command, args []string) {
 	})
 
 	configureProxy(proxy)
-
-	viper.OnConfigChange(func(evt fsnotify.Event) {
-		log.Infof("proxy.Serve: Reconfiguring: %v", evt.Name)
-		configureProxy(proxy)
-		log.Infof("logger: Reconfiguring: %v", evt.Name)
-		logger.Configure()
-	})
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", viper.GetString("port")))
 
@@ -99,12 +91,16 @@ func Serve(cmd *cobra.Command, args []string) {
 	log.Infof("bff: shutting down")
 }
 
-func configureProxy(proxy *martian.Proxy) {
+func Configure() {
+	configureProxy(Proxy)
+}
+
+func configureProxy(*martian.Proxy) {
 	outer, inner := httpspec.NewStack("bff")
 
 	main := NewErrorBoundary()
-	proxy.SetRequestModifier(main)
-	proxy.SetResponseModifier(main)
+	Proxy.SetRequestModifier(main)
+	Proxy.SetResponseModifier(main)
 
 	main.SetRequestModifier(outer)
 	main.SetResponseModifier(outer)
@@ -145,9 +141,7 @@ func configureProxy(proxy *martian.Proxy) {
 		}
 	}
 
-	lm := martianlog.NewLogger()
-	lm.SetDecode(false)
-	lm.SetHeadersOnly(true)
-	outer.AddRequestModifier(lm)
-	outer.AddResponseModifier(lm)
+	ml := bfflog.NewLogger()
+	outer.AddRequestModifier(ml)
+	outer.AddResponseModifier(ml)
 }

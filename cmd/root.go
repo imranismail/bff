@@ -6,17 +6,16 @@ import (
 	"path"
 	"strings"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/imranismail/bff/config"
+	"github.com/imranismail/bff/log"
 	"github.com/imranismail/bff/proxy"
 	"github.com/spf13/cobra"
-
-	"github.com/rs/zerolog"
 
 	"github.com/adrg/xdg"
 	"github.com/spf13/viper"
 )
 
-var log = zerolog.New(zerolog.NewConsoleWriter()).With().Timestamp().Logger()
 var cfgFile string
 var cfgPath = path.Join(xdg.ConfigHome, "bff")
 
@@ -35,7 +34,7 @@ and modifing HTTP request and response.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Error().Msgf("Root: %v", err)
+		log.Errorf("Root: %v", err)
 		os.Exit(1)
 	}
 }
@@ -58,6 +57,9 @@ func init() {
 
 	rootCmd.Flags().IntP("verbosity", "v", 2, "Verbosity")
 	viper.BindPFlag("verbosity", rootCmd.Flags().Lookup("verbosity"))
+
+	rootCmd.Flags().BoolP("pretty", "r", false, "Pretty logs")
+	viper.BindPFlag("pretty", rootCmd.Flags().Lookup("pretty"))
 
 	rootCmd.Flags().StringP("url", "u", "", "Proxied URL")
 	viper.BindPFlag("url", rootCmd.Flags().Lookup("url"))
@@ -90,9 +92,18 @@ func initConfig() {
 
 	// If a config file is found, read it in
 	if err == nil {
-		log.Info().Msgf("Using config file: %v", viper.ConfigFileUsed())
-		viper.WatchConfig()
+		log.Infof("Using config file: %v", viper.ConfigFileUsed())
 	}
+
+	log.Configure()
+
+	viper.OnConfigChange(func(evt fsnotify.Event) {
+		log.Infof("Reconfiguring: %v", evt.Name)
+		log.Configure()
+		proxy.Configure()
+	})
+
+	viper.WatchConfig()
 }
 
 func hasPipedInput() bool {
