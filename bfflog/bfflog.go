@@ -20,7 +20,7 @@ type loggerJSON struct {
 }
 
 func init() {
-	parse.Register("log.Logger", loggerFromJSON)
+	parse.Register("bfflog.Logger", loggerFromJSON)
 }
 
 // NewLogger returns a logger that logs requests and responses, optionally
@@ -69,7 +69,7 @@ func (l *Logger) ModifyResponse(res *http.Response) error {
 //
 // Example JSON:
 // {
-//   "log.Logger": {
+//   "bfflog.Logger": {
 //     "scope": ["request", "response"]
 //   }
 // }
