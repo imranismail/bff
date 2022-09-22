@@ -92,10 +92,9 @@ func initConfig() {
 
 	// If a config file is found, read it in
 	if err == nil {
+		log.Configure()
 		log.Infof("Using config file: %v", viper.ConfigFileUsed())
 	}
-
-	log.Configure()
 
 	viper.OnConfigChange(func(evt fsnotify.Event) {
 		log.Infof("Reconfiguring: %v", evt.Name)
