@@ -53,7 +53,7 @@ The proxy is configured with a YAML configuration file. The file path can be set
 ### Executable
 
 ```sh
-bff --insecure=false --port=5000 --verbosity=3 <<YAML
+go run main.go <<YAML
 # fetch resources concurrently
 - body.MultiFetcher:
     resources:

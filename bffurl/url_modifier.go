@@ -53,6 +53,7 @@ func (m *Modifier) ModifyRequest(req *http.Request) error {
 	}
 	if m.url.Host != "" {
 		req.URL.Host = m.url.Host
+		req.Host = m.url.Host
 	}
 	if m.url.Path != "" {
 		ctx := martian.NewContext(req)
