@@ -145,13 +145,16 @@ url: ""
 # flag: -v --verbosity
 # type: int
 # required: false
-# default: 2
+# default: 1
 # options:
-#   0: nothiing
-#   1: error
-#   2: info
-#   3: debug
-verbosity: 2
+# - panic 5
+# - fatal 4
+# - error 3
+# - warn 2
+# - info 1
+# - debug 0
+# - trace -1
+verbosity: 1
 
 # env: BFF_MODIFIERS
 # flag: N/A instead it can be set via linux pipe. example: `cat modifiers.yaml | bff` or `bff <<EOF ...config EOF`
